@@ -1,0 +1,138 @@
+/* Reusable building blocks for panel content. Import as `ui`. */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  /* Direct child only: dialogs opened from a section sit inside it. */
+  > h2 {
+    margin: 0;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+}
+
+/* Label wrapping its control, stacked. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+/* Horizontal group; buttons share the width and wrap when it runs out. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  > button {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+button.danger {
+  border-color: var(--danger);
+  color: var(--danger-text);
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--danger-surface);
+}
+
+button.primary {
+  background: var(--text-muted);
+  border-color: var(--text-muted);
+  color: var(--bg-color);
+  font-weight: bold;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--text);
+}
+
+/* Data table. */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th {
+    text-align: left;
+    font-weight: normal;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-strong);
+    padding: 4px 6px;
+  }
+
+  td {
+    padding: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr:hover {
+    background: rgb(255 255 255 / 0.03);
+  }
+}
+
+/* Modal <dialog>. Keep padding on .dialogBody, not on .dialog, so a click
+   whose target is the dialog itself is a click on the backdrop. */
+.dialog {
+  padding: 0;
+  width: min(440px, calc(100vw - 32px));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-color);
+  color: var(--text);
+  font-family: var(--font);
+  box-shadow: var(--shadow);
+}
+
+.dialog::backdrop {
+  background: rgb(10 10 30 / 0.6);
+}
+
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* Footer buttons; put a .spacer before the right-aligned ones. */
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Identifier shown for reference, e.g. "#3f9a1c2e". */
+.id {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  user-select: all;
+}

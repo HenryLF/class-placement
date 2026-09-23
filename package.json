@@ -1,0 +1,25 @@
+{
+  "name": "class-placement",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "build": "bun build --minify src/index.html --outdir dist/",
+    "test": "bun test --preload ./tests/setup.ts tests/unit",
+    "test:e2e": "bun test --timeout 30000 tests/e2e",
+    "test:all": "bun run test && bun run test:e2e"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.14.5",
+    "@types/bun": "latest",
+    "puppeteer-core": "^25.11.0"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "preact": "^10.29.8",
+    "zustand": "^5.0.15"
+  }
+}

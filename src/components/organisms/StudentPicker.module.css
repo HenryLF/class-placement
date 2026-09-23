@@ -1,0 +1,12 @@
+.wide {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.scroll {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.classes {
+  color: var(--text-muted);
+}

@@ -1,0 +1,95 @@
+.room {
+  background: var(--paper);
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.boardZone {
+  flex: 0 0 48px;
+  display: flex;
+  justify-content: center;
+  border: 1px dashed transparent;
+  border-radius: var(--radius);
+  transition: background-color 0.1s;
+}
+
+.board {
+  width: 60%;
+}
+
+.container {
+  --n_cols: 9;
+  --n_rows: 9;
+
+  flex: 1;
+  min-height: 0;
+  gap: 4px;
+
+  display: grid;
+  grid-template-columns: repeat(var(--n_cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--n_rows), minmax(0, 1fr));
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  border: 1px dashed var(--grid-line);
+  border-radius: var(--radius);
+  transition: background-color 0.1s;
+}
+
+.over {
+  background-color: var(--highlight);
+  border-color: var(--bg-color);
+}
+
+.table {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Switched off for this class's placement: nobody sits here. */
+.off {
+  opacity: 0.35;
+  border-style: dashed;
+  filter: grayscale(1);
+}
+
+/* Source left in place while its preview follows the pointer. */
+.dragging {
+  opacity: 0.35;
+}
+
+/* Violation arrows (ViolationMarks), centered on an edge or corner of the
+   cell. They never take pointer events, so drag and drop is unaffected. */
+.marks {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  gap: 2px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Left/right edges and corners stack arrows vertically. */
+.vertical {
+  flex-direction: column;
+}
+
+/* A triangle pointing right, turned toward the neighbor by --angle. */
+.arrow {
+  width: 12px;
+  height: 12px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  transform: rotate(var(--angle));
+}

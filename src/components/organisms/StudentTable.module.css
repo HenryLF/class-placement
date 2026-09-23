@@ -1,0 +1,52 @@
+/* Compact cells: the panel can be as narrow as 320px. */
+.table {
+  th,
+  td {
+    padding: 4px 2px;
+    vertical-align: top;
+  }
+
+  th {
+    padding-right: 8px;
+  }
+
+  select {
+    padding: 4px 2px;
+  }
+}
+
+/* Takes the width the other columns leave. */
+.name {
+  width: 100%;
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ID and incompatibility count, under the name. */
+.meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.warn {
+  color: var(--danger-text);
+}
+
+.front {
+  color: var(--violation-frontRow);
+}
+
+.actions {
+  white-space: nowrap;
+
+  button {
+    padding: 4px;
+    border-color: transparent;
+    background: transparent;
+    line-height: 1;
+  }
+}

@@ -1,0 +1,54 @@
+.incompatible {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: 0.85rem;
+
+  legend {
+    padding: 0 4px;
+    color: var(--text-muted);
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 2px 2px 8px;
+  border: 1px solid var(--danger);
+  border-radius: 999px;
+  background: var(--danger-surface);
+
+  button {
+    padding: 0 6px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 0.75rem;
+  }
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+
+  input {
+    flex: none;
+    padding: 0;
+  }
+}

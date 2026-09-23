@@ -1,0 +1,86 @@
+/* One constraint: checkbox + label, then its selects; wraps at 320px. */
+.constraint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+/* Takes the space left by the weight select; a long label wraps. */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 0.85rem;
+
+  input {
+    flex: none;
+    padding: 0;
+  }
+}
+
+.rule {
+  display: flex;
+  gap: 4px;
+  flex: 1 1 100%;
+  min-width: 0;
+
+  select {
+    flex: 1;
+  }
+}
+
+.swatch {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.popover {
+  width: min(360px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-color);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  box-shadow: var(--shadow);
+
+  p {
+    margin: 0 0 8px;
+  }
+
+  p:last-child {
+    margin: 0;
+  }
+}
+
+.text {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.warning {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--danger-text);
+}
+
+.violations {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}

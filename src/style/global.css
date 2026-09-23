@@ -1,0 +1,129 @@
+/* Design tokens and base element styles shared by the whole app.
+   Component-specific styles live in each component's *.module.css;
+   reusable classes live in ./ui.module.css. */
+
+:root {
+  /* Panel (dark) */
+  --bg-color: #202050;
+  --surface: #2c2c68;
+  --surface-hover: #3a3a80;
+  --border: #40407a;
+  --border-strong: #6060a0;
+  --text: #e8e8ff;
+  --text-muted: #a0a0e0;
+  --text-faint: #9090c0;
+  --danger: #a05060;
+  --danger-text: #e0a0b0;
+  --danger-surface: #603040;
+
+  /* Room (light) */
+  --paper: #fff;
+  --grid-line: #d0d0e0;
+  --highlight: #dde3ff;
+  --wood: #f3e2c7;
+  --wood-border: #a07a4a;
+  --wood-text: #4a3520;
+  --board: #f8f8f8;
+  --board-border: #707080;
+  --board-text: #404050;
+
+  /* Broken placement constraints: arrows on tables, legend in the panel */
+  --violation-incompatible: #d02838;
+  --violation-gender: #8a3fd0;
+  --violation-score: #e08a00;
+  --violation-frontRow: #1f9a6a;
+
+  --radius: 4px;
+  --radius-lg: 6px;
+  --shadow: 0 4px 12px rgb(0 0 0 / 0.3);
+  --font: "Courier New", Courier, monospace;
+}
+
+/* Themes (store/useUI.ts sets <html data-theme>). "indigo" is :root above;
+   the others override the panel and room colors only. */
+:root[data-theme="light"] {
+  --bg-color: #eef0f8;
+  --surface: #ffffff;
+  --surface-hover: #e0e4f4;
+  --border: #c8cce0;
+  --border-strong: #9098c0;
+  --text: #1e2040;
+  --text-muted: #464c80;
+  --text-faint: #5c6290;
+  --danger: #c05060;
+  --danger-text: #a02838;
+  --danger-surface: #f8dde2;
+
+  --paper: #f7f7fa;
+  --grid-line: #d4d4e2;
+  --highlight: #dde3ff;
+  --shadow: 0 4px 12px rgb(0 0 40 / 0.15);
+}
+
+:root[data-theme="chalk"] {
+  --bg-color: #1d2a24;
+  --surface: #283a31;
+  --surface-hover: #344c40;
+  --border: #3c5447;
+  --border-strong: #5c7d6c;
+  --text: #e6f0ea;
+  --text-muted: #a6c6b4;
+  --text-faint: #90b09e;
+
+  --paper: #2e4a3b;
+  --grid-line: #4c6c5b;
+  --highlight: #42664f;
+}
+
+html,
+body {
+  all: unset;
+  font-family: var(--font);
+}
+
+#root {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-color);
+  color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--text-muted);
+  outline-offset: 1px;
+}
+
+/* Set by utils/dnd.ts while a drag is in progress. */
+.dragging,
+.dragging * {
+  cursor: grabbing !important;
+  user-select: none;
+}

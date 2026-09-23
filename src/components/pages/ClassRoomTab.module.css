@@ -1,0 +1,17 @@
+.source {
+  padding: 12px;
+  text-align: center;
+}
+
+.trash {
+  padding: 12px;
+  text-align: center;
+  border: 2px dashed var(--danger);
+  border-radius: var(--radius);
+  color: var(--danger-text);
+  transition: background-color 0.1s;
+}
+
+.trashOver {
+  background: var(--danger-surface);
+}

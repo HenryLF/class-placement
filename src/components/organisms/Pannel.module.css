@@ -1,0 +1,70 @@
+.pannel {
+  width: 30vw;
+  min-width: 320px;
+  flex-shrink: 0;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Three text tabs and the ⚙ tab share 288px at the narrowest panel; at
+   0.8rem, "Classroom" and "Placement" still fit. */
+button.tab {
+  flex: 1;
+  padding: 4px 2px;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* Just wide enough for its icon, leaving room for the text tabs. */
+button.iconTab {
+  flex: none;
+  padding: 4px 10px;
+}
+
+button.activeTab {
+  background: var(--surface);
+  color: var(--text);
+}
+
+button.expand {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-color);
+  box-shadow: var(--shadow);
+}

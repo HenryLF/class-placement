@@ -1,0 +1,185 @@
+// Reference dictionary: every other language must match this shape.
+const en = {
+  app: {
+    title: "Class Placement",
+    language: "Language",
+    showPannel: "Show panel",
+    hidePannel: "Hide panel",
+  },
+  common: {
+    cancel: "Cancel",
+    close: "Close",
+    save: "Save",
+    delete: "Delete",
+    unnamed: "(unnamed)",
+  },
+  tabs: {
+    classroom: "Classroom",
+    students: "Students",
+    placement: "Placement",
+    options: "Options",
+  },
+  profile: {
+    heading: "Class",
+    load: "Load",
+    name: "Name",
+    newClass: "New class",
+    duplicate: "Copy",
+    deleteConfirm: (name: string) => `Delete "${name}"?`,
+    defaultName: "New class",
+    firstName: "My class",
+  },
+  grid: {
+    heading: "Grid",
+    rows: "Rows",
+    columns: "Columns",
+    shrinkHint: "The grid can't shrink past a placed table.",
+  },
+  tables: {
+    heading: (count: number) => `Tables (${count})`,
+    newTable: "⠿ Drag a new table onto the grid",
+    trash: "🗑 Drop a table here to remove it",
+    hint: "Drag tables to move them. Dropping on another table swaps them. Click a table to switch it off for the loaded class's placement.",
+    clearAll: "Clear all tables",
+    clearConfirm: "Remove every table from this class?",
+    alt: "Table",
+    off: "Table switched off",
+  },
+  classroom: {
+    whiteboard: "Whiteboard",
+  },
+  students: {
+    classHeading: "Class",
+    copyName: (name: string) => `${name} - Copy`,
+    deleteClassConfirm: (name: string) =>
+      `Delete "${name}"? Students who aren't in another class will be deleted too.`,
+    heading: (count: number) => `Students (${count})`,
+    newStudent: "New student",
+    addFromOther: "Add from another class",
+    addMultiple: "Add multiple",
+    empty: "No students in this class yet.",
+    columns: {
+      name: "Name",
+      id: "ID",
+      gender: "Gender",
+      score: "Score",
+      actions: "Actions",
+    },
+    genders: {
+      female: "Female",
+      male: "Male",
+      other: "Other",
+    },
+    // Shown in the list's gender select, where space is tight.
+    gendersShort: {
+      female: "F",
+      male: "M",
+      other: "X",
+    },
+    noScore: "—",
+    incompatibleCount: (count: number) => `⚠ ${count}`,
+    frontRowBadge: "⬆ Front",
+    details: (name: string) => `Details: ${name}`,
+    remove: (name: string) => `Delete ${name}`,
+  },
+  importStudents: {
+    title: "Add multiple students",
+    label: "Names, one per line",
+    placeholder: "Alice Martin\nBob Dupont\n…",
+    summary: (count: number, className: string) =>
+      `Creating ${count} new ${count === 1 ? "student" : "students"} in "${className}".`,
+    import: "Import",
+  },
+  deleteStudent: {
+    title: (name: string, className: string) => `Delete ${name} from "${className}"?`,
+    alsoIn: (classes: string) => `Also in: ${classes}.`,
+    onlyHere: "They aren't in any other class, so they'll be deleted completely.",
+    fromClass: "This class only",
+    fromAll: "All classes",
+  },
+  card: {
+    incompatible: "Incompatible with",
+    none: "No one.",
+    addIncompatible: "Add a student…",
+    frontRow: "Front row (sit close to the whiteboard)",
+    removeIncompatible: (name: string) => `Remove ${name}`,
+  },
+  picker: {
+    filter: "Filter by name or ID",
+    classes: "Classes",
+    add: "Add",
+    empty: "No other students.",
+    noMatch: "No student matches.",
+  },
+  options: {
+    languageHeading: "Language",
+    themeHeading: "Theme",
+    theme: "Color theme",
+    themes: { indigo: "Indigo (default)", light: "Light", chalk: "Chalkboard" },
+    backupHeading: "Import / export",
+    export: "Export as JSON",
+    exportHint: "Downloads every room, class, student, placement and setting in one file.",
+    import: "Import from JSON…",
+    importHint: "Replaces all current data with the file's.",
+    importConfirm: (date: string) =>
+      `Replace all current data with the export from ${date}? This can't be undone.`,
+    imported: "Data imported.",
+    errors: {
+      invalid: "This file isn't valid JSON.",
+      notBackup: "This file isn't a Class Placement export.",
+      empty: "This file has no data to import.",
+      broken: (key: string) => `The file's "${key}" data is damaged. Nothing was imported.`,
+    },
+  },
+  placement: {
+    constraintsHeading: "Constraints",
+    gender: "Alternate genders",
+    incompatible: "Separate incompatible students",
+    score: "Balance scores",
+    weight: (constraint: string) => `Weight of "${constraint}"`,
+    weights: { low: "Low", medium: "Medium", high: "High" },
+    rule: "Score rule",
+    rules: {
+      spread: "Spread strong and weak",
+      pairMean: "Pair strong with weak",
+    },
+    ruleInfo: "About score rules",
+    ruleHelp: {
+      spread:
+        "Spread strong and weak: avoids two strong, or two weak, students side by side. Anyone else can sit anywhere. With a mean of 3, 5 next to 5 is avoided, while 5 next to 1 or 5 next to 3 is fine.",
+      pairMean:
+        "Pair strong with weak: each pair of neighbors should average to the class mean, so strong students end up next to weak ones. With a mean of 3, 5 next to 1 is preferred and 5 next to 3 is slightly avoided.",
+      noScore: "Students without a score are ignored, and don't count in the mean.",
+    },
+    diagonal: "Diagonal neighbors",
+    diagonals: { off: "Ignored", quarter: "¼ weight", half: "½ weight", full: "Full weight" },
+    diagonalHint: "Side neighbors always count fully.",
+    front: "Fill the front first",
+    frontRow: "Front-row students near the board",
+    frontHint: "Distance is measured to the middle of the whiteboard, so the front center fills first. Front-row students are set in their card.",
+    showMarks: "Show broken constraints on the tables",
+    disabledHint: (count: number) =>
+      `${count} ${count === 1 ? "table is" : "tables are"} switched off. Click a table in the room to switch it on or off.`,
+    placeHeading: "Placement",
+    summary: (cls: string, room: string, students: number, tables: number) =>
+      `"${cls}" in "${room}": ${students} ${students === 1 ? "student" : "students"}, ${tables} ${tables === 1 ? "table" : "tables"}.`,
+    place: "Place students",
+    clear: "Clear placement",
+    needStudents: "Add students to this class first.",
+    needTables: "Add tables to this room first.",
+    notPlaced: "Not placed yet.",
+    unplaced: (names: string) => `Not enough tables. Not seated: ${names}.`,
+    violationsNone: "No constraint broken.",
+    violations: {
+      incompatible: (n: number) => `${n} incompatible ${n === 1 ? "pair" : "pairs"}`,
+      gender: (n: number) => `${n} same-gender ${n === 1 ? "pair" : "pairs"}`,
+      score: (n: number) => `${n} same-level ${n === 1 ? "pair" : "pairs"}`,
+      frontRow: (n: number) =>
+        `${n} front-row ${n === 1 ? "student" : "students"} not at the front`,
+    },
+    arrowsHint: "Arrows on a table point to the neighbor it breaks a constraint with.",
+  },
+};
+
+export type Translations = typeof en;
+export default en;

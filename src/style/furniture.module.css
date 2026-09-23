@@ -1,0 +1,36 @@
+/* Look of the room's furniture, shared by the grid, the drag preview and
+   the panel's new-table source. Import as `f`; size and layout stay in each
+   component's module. */
+
+.wood {
+  background: var(--wood);
+  color: var(--wood-text);
+  border: 2px solid var(--wood-border);
+  border-radius: var(--radius);
+  box-sizing: border-box;
+}
+
+.board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--board);
+  border: 3px solid var(--board-border);
+  border-radius: var(--radius);
+  color: var(--board-text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Drag source (utils/dnd.ts). `touch-action: none` keeps a touch drag from
+   scrolling the page. */
+.draggable {
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}

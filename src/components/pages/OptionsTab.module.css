@@ -1,0 +1,18 @@
+/* Opened through the Import button instead. */
+.file {
+  display: none;
+}
+
+.ok,
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.ok {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger-text);
+}
