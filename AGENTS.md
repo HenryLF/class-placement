@@ -10,8 +10,10 @@ covers what you need to make correct changes.
 sit in a classroom. It runs entirely in the browser, with no backend.
 
 - **Room layouts** (Classroom tab and the white area): a grid of cells.
-  Single-seat tables are dragged onto cells, and a whiteboard sits above or
-  below the grid.
+  A click on an empty cell adds a single-seat table; tables are dragged to
+  move or swap them, and onto the bin (shown in the room's corner only
+  during a table drag) to delete them. A whiteboard sits above or below the
+  grid.
 - **Students** (Students tab): classes of students. Each student has a
   name, a gender, an optional score (1–5) and a list of students they must
   not sit with (incompatibilities).
@@ -177,7 +179,8 @@ store            { options, placements, disabledTables: Record<key, tableId[]>, 
   table that is now off shows as unplaced, and comes back if it's switched
   on again.
 - **`dnd.ts` swallows the click** that follows a drag, so dragging a table
-  never toggles it. Double-click no longer deletes a table (it would toggle
+  never toggles it, and dropping one on an empty cell doesn't also add a
+  table there. Double-click no longer deletes a table (it would toggle
   twice); the bin does.
 - **Cost model** (`pairCost`): summed over neighbor pairs. Side neighbors
   weigh 1 and diagonals weigh `diagonal`.
@@ -245,7 +248,7 @@ explained in the README.
   - Colors and radii come from the CSS variables in `global.css`; don't hard-code hex values in modules.
   - Themes (`indigo` = `:root`, `light`, `chalk`) override those variables under `:root[data-theme=…]`. A new color token needs a value in every theme where the default doesn't read well.
   - Reusable classes go in `ui.module.css`, imported as `ui`; the table/whiteboard look in `furniture.module.css`, imported as `f`; component-specific CSS goes in a sibling module, imported as `s`.
-  - The panel can be as narrow as 320px. Check layouts there (there is an e2e test for it).
+  - The panel can be as narrow as 320px. Check layouts there (there is an e2e test for it). Below 768px it overlays the room (fixed, full width up to 420px) instead of shrinking it.
 - **Dialogs:** always use `<Modal>` ([molecules/Modal.tsx](src/components/molecules/Modal.tsx)), never a raw `<dialog>`. It opens with `showModal()`, labels the dialog with its `title` (`data-testid="dialog-title"`), and closes on Escape and on a backdrop click. Close buttons are `<ModalClose>` (optional `onClick` runs first). With `onSubmit`, the body is a `<form>`: forms keep a draft and commit in `onSubmit`, and every other way of closing discards it. For a question with several answers, use `ChoiceDialog`.
 - **Drag and drop:** use `useDraggable(payload)` and `useDropTarget(id, { accepts, onDrop })` from `utils/dnd.ts`, never HTML5 `draggable`, which doesn't work on touch screens. Give drag sources the `f.draggable` class (grab cursor, `touch-action: none`).
 - **Zustand selectors:** select one value at a time (`useStore((s) => s.x)`). A selector must not return a new object, array or Map on every call, or the component re-renders forever in v5. Derive values with `useMemo` over a selected value instead (see `useClassesByStudent`).

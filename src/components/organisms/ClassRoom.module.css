@@ -48,6 +48,19 @@
   transition: background-color 0.1s;
 }
 
+/* A click adds a table here; a "+" hints at it under a mouse. */
+.empty {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .empty:hover::after {
+    content: "+";
+    color: var(--grid-line);
+    font-size: 1.5rem;
+  }
+}
+
 .over {
   background-color: var(--highlight);
   border-color: var(--bg-color);
@@ -63,6 +76,32 @@
   opacity: 0.35;
   border-style: dashed;
   filter: grayscale(1);
+}
+
+/* Drop zone to delete a table, in the bottom whiteboard strip's corner
+   (the room's padding + the strip's height). */
+.trash {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  z-index: 20;
+  width: 48px;
+  height: 48px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border: 2px dashed var(--danger);
+  border-radius: 50%;
+  background: var(--bg-color);
+  box-shadow: var(--shadow);
+  transition: transform 0.1s, background-color 0.1s;
+}
+
+.trashOver {
+  background: var(--danger-surface);
+  transform: scale(1.2);
 }
 
 /* Source left in place while its preview follows the pointer. */

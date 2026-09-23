@@ -1,6 +1,5 @@
-/* Look of the room's furniture, shared by the grid, the drag preview and
-   the panel's new-table source. Import as `f`; size and layout stay in each
-   component's module. */
+/* Look of the room's furniture, shared by the grid and the drag preview.
+   Import as `f`; size and layout stay in each component's module. */
 
 .wood {
   background: var(--wood);

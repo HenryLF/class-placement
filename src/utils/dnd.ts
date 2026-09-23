@@ -13,10 +13,7 @@
 import { useEffect, useRef } from "preact/hooks";
 import { create } from "zustand";
 
-export type DragPayload =
-  | { kind: "new-table" }
-  | { kind: "table"; id: string }
-  | { kind: "board" };
+export type DragPayload = { kind: "table"; id: string } | { kind: "board" };
 
 export interface DropTarget {
   accepts: (payload: DragPayload) => boolean;

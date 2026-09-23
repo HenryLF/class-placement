@@ -11,6 +11,22 @@
   gap: 16px;
 }
 
+/* On a phone, sharing the width would leave the room too small: the panel
+   opens on top of it instead, and closing it shows the whole room again. */
+@media (max-width: 768px) {
+  .pannel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 10;
+    width: 100%;
+    max-width: 420px;
+    min-width: 0;
+    background: var(--bg-color);
+    box-shadow: var(--shadow);
+  }
+}
+
 .header {
   display: flex;
   align-items: center;

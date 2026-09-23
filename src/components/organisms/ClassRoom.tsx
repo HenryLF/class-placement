@@ -61,6 +61,7 @@ export default function ClassRoom() {
         {cells}
       </div>
       <BoardZone side="bottom" hasBoard={board === "bottom"} />
+      <Trash />
     </div>
   );
 }
@@ -93,18 +94,21 @@ function Cell({
   const t = useT();
   const addTable = useClassRoom((st) => st.addTable);
   const moveTable = useClassRoom((st) => st.moveTable);
+  // Moved tables may land anywhere: on another table, they swap.
   const { dropProps, isOver } = useDropTarget(`cell:${row}:${col}`, {
-    // New tables only go on empty cells; moved tables may swap.
-    accepts: (p) =>
-      p.kind === "table" || (p.kind === "new-table" && !table),
+    accepts: (p) => p.kind === "table",
     onDrop: (p) => {
       if (p.kind === "table") moveTable(p.id, row, col);
-      else if (p.kind === "new-table") addTable(row, col);
     },
   });
 
+  // A click on an empty cell adds a table; a click on a table toggles it.
   return (
-    <div {...dropProps} className={`${s.cell} ${isOver ? s.over : ""}`}>
+    <div
+      {...dropProps}
+      className={`${s.cell} ${table ? "" : s.empty} ${isOver ? s.over : ""}`}
+      onClick={table ? undefined : () => addTable(row, col)}
+    >
       {table && (
         <Table
           table={table}
@@ -137,6 +141,32 @@ function BoardZone({ side, hasBoard }: { side: BoardSide; hasBoard: boolean }) {
           className={`${f.draggable} ${s.board} ${dragging ? s.dragging : ""}`}
         />
       )}
+    </div>
+  );
+}
+
+// Bin in the room's bottom-left corner, shown only while a table is dragged.
+// It sits inside the bottom whiteboard strip, so it never hides a cell.
+function Trash() {
+  const t = useT();
+  const removeTable = useClassRoom((st) => st.removeTable);
+  const dragging = useIsDragging((p) => p.kind === "table");
+  const { dropProps, isOver } = useDropTarget("trash", {
+    accepts: (p) => p.kind === "table",
+    onDrop: (p) => {
+      if (p.kind === "table") removeTable(p.id);
+    },
+  });
+  if (!dragging) return null;
+
+  return (
+    <div
+      {...dropProps}
+      data-testid="trash"
+      aria-label={t.tables.trash}
+      className={`${s.trash} ${isOver ? s.trashOver : ""}`}
+    >
+      🗑
     </div>
   );
 }

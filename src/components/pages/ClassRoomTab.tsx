@@ -5,11 +5,8 @@ import {
   useClassRoom,
   useCurrentClass,
 } from "../../store/useClassRoom";
-import f from "../../style/furniture.module.css";
 import ui from "../../style/ui.module.css";
-import { useDraggable, useDropTarget } from "../../utils/dnd";
 import ProfilePicker from "../molecules/ProfilePicker";
-import s from "./ClassRoomTab.module.css";
 
 export default function ClassRoomTab() {
   return (
@@ -82,28 +79,11 @@ function GridSection() {
 function TablesSection() {
   const t = useT();
   const { tables } = useCurrentClass();
-  const removeTable = useClassRoom((st) => st.removeTable);
   const clearTables = useClassRoom((st) => st.clearTables);
-  const drag = useDraggable({ kind: "new-table" });
-  const trash = useDropTarget("trash", {
-    accepts: (p) => p.kind === "table",
-    onDrop: (p) => {
-      if (p.kind === "table") removeTable(p.id);
-    },
-  });
 
   return (
     <section className={ui.section}>
       <h2>{t.tables.heading(tables.length)}</h2>
-      <div {...drag} className={`${f.wood} ${f.draggable} ${s.source}`} data-testid="new-table">
-        {t.tables.newTable}
-      </div>
-      <div
-        {...trash.dropProps}
-        className={`${s.trash} ${trash.isOver ? s.trashOver : ""}`}
-      >
-        {t.tables.trash}
-      </div>
       <p className={ui.hint}>{t.tables.hint}</p>
       <button
         className={ui.danger}

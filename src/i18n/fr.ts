@@ -40,9 +40,8 @@ const fr: Translations = {
   },
   tables: {
     heading: (count) => `Tables (${count})`,
-    newTable: "⠿ Glissez une nouvelle table sur la grille",
-    trash: "🗑 Déposez une table ici pour la supprimer",
-    hint: "Glissez les tables pour les déplacer. Les déposer sur une autre table les échange. Cliquez sur une table pour la désactiver dans le placement de la classe chargée.",
+    trash: "Déposez une table ici pour la supprimer",
+    hint: "Cliquez sur une case vide pour ajouter une table. Glissez les tables pour les déplacer : les déposer sur une autre table les échange, et sur la corbeille 🗑 qui apparaît dans le coin les supprime. Cliquez sur une table pour la désactiver dans le placement de la classe chargée.",
     clearAll: "Retirer toutes les tables",
     clearConfirm: "Retirer toutes les tables de cette classe ?",
     alt: "Table",

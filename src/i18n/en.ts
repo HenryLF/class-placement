@@ -37,9 +37,8 @@ const en = {
   },
   tables: {
     heading: (count: number) => `Tables (${count})`,
-    newTable: "⠿ Drag a new table onto the grid",
-    trash: "🗑 Drop a table here to remove it",
-    hint: "Drag tables to move them. Dropping on another table swaps them. Click a table to switch it off for the loaded class's placement.",
+    trash: "Drop a table here to remove it",
+    hint: "Click an empty cell to add a table. Drag tables to move them: dropping on another table swaps them, and dropping on the 🗑 bin that appears in the corner removes them. Click a table to switch it off for the loaded class's placement.",
     clearAll: "Clear all tables",
     clearConfirm: "Remove every table from this class?",
     alt: "Table",

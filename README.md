@@ -33,9 +33,10 @@ assets are cached for a year, and `index.html` is always revalidated.
 
 - **Grid**: a rows × columns room (1–30 each). The grid can't shrink past a
   placed table.
-- **Tables**: drag the "new table" tile from the panel onto an empty cell.
-  Drag a table to move it; dropping on another table swaps them. Remove a
-  table by dropping it on the bin. Clicking a table switches it off for the
+- **Tables**: click an empty cell to add a table. Drag a table to move it;
+  dropping on another table swaps them. While a table is dragged, a bin
+  appears in the room's bottom-left corner: drop it there to remove it.
+  Clicking a table switches it off for the
   loaded class's placement (greyed out; nobody is seated there).
 - **Whiteboard**: sits above or below the grid; drag it to the other side.
 - **Room layouts**: create, rename, load and delete named layouts. Every
@@ -68,6 +69,8 @@ assets are cached for a year, and `index.html` is always revalidated.
 - **Drag and drop** works with mouse, touch and pen. Press Escape to cancel
   a drag.
 - **Collapsible panel**: hide the side panel to give the grid the full width.
+  Below 768px wide (phones), the panel opens on top of the room instead of
+  sharing the width.
 - **Options** (⚙ tab):
   - **Language**: English (default) or French.
   - **Theme**: Indigo (default), Light or Chalkboard, which change the room's and the panel's colors.
@@ -283,8 +286,7 @@ drag and drop, which doesn't work on most touch screens.
 - `useIsDragging(match)` tells a source it's being dragged, so it can dim
   itself.
 
-Payloads are `{ kind: "new-table" }`, `{ kind: "table", id }` and
-`{ kind: "board" }`. Drag sources need `touch-action: none` (the `f.draggable` class),
+Payloads are `{ kind: "table", id }` and `{ kind: "board" }`. Drag sources need `touch-action: none` (the `f.draggable` class),
 otherwise a touch drag scrolls the page instead.
 
 ## Translations
