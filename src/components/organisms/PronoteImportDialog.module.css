@@ -1,0 +1,5 @@
+/* A class list can be long: the preview scrolls, the buttons stay put. */
+.preview {
+  max-height: 40vh;
+  overflow-y: auto;
+}

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { byName } from "../../src/utils/names";
+import { byName, sameName } from "../../src/utils/names";
 
 test("byName ignores case and accents, and reads numbers as numbers", () => {
   const names = ["Zoé", "room 10", "élodie", "Room 2", "adam", "", "Eric"];
@@ -12,4 +12,9 @@ test("byName ignores case and accents, and reads numbers as numbers", () => {
     "room 10",
     "Zoé",
   ]);
+});
+
+test("sameName ignores case, accents and surrounding spaces", () => {
+  expect(sameName("MARTIN Léa", " martin lea ")).toBe(true);
+  expect(sameName("MARTIN Léa", "MARTIN Léo")).toBe(false);
 });

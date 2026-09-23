@@ -50,7 +50,10 @@ assets are cached for a year, and `index.html` is always revalidated.
   they are incompatible with) and saves on Save. 🗑 asks whether to remove
   the student from this class only or from all classes; for a student in no
   other class it just offers Delete. **Add multiple** imports a pasted list
-  of names, one student per line, into the loaded class. One student can
+  of names, one student per line, into the loaded class. **Import from
+  Pronote** reads a Pronote CSV export of the class's students (name from
+  "Élèves", gender from "Sexe"), shows a preview, and adds them to the
+  loaded class, skipping students whose name is already there. One student can
   belong to several classes. Each student shows a short ID (`#3f9a1c2e`) to tell
   apart students with the same name. **Copy** duplicates a class; the copy
   shares the same students. **Add from another class** lists every other
@@ -112,6 +115,7 @@ src/
       StudentCard.tsx     Popup editing every field of a student
       StudentPicker.tsx   Popup adding students from other classes
       ImportStudentsDialog.tsx  Paste names, one student per line
+      PronoteImportDialog.tsx   Pick a Pronote CSV export, preview, import
       DeleteStudentDialog.tsx   "This class only" / "All classes" question
     pages/
       ClassRoomTab.tsx    Room layouts, grid size, table tools
@@ -133,10 +137,12 @@ src/
     dnd.ts                Pointer-based drag and drop
     placement.ts          Seating algorithm (pure functions)
     ids.ts                shortId() for displaying ids
-    names.ts              byName: alphabetical order for every list
+    names.ts              byName / sameName: alphabetical order and name matching
+    pronote.ts            Pronote CSV export parser (pure functions)
 tests/
   setup.ts                happy-dom preload for unit tests
   helpers.ts              resetStores()
+  fixtures/               Sample files (a Pronote export with made-up students)
   unit/                   Store logic, i18n, helpers (bun test)
   e2e/                    Real-browser scenarios (puppeteer-core)
 ```
@@ -243,9 +249,12 @@ drop links to deleted students, in case stored data was edited by hand.
 - The list is sorted by name, but holds its order while the pointer is over
   it or focus is in it, so a row doesn't move while its name is typed.
 - `duplicateClass` copies the id list, not the students.
-- `importStudents(names)` appends one new student per name to the loaded
-  class, in order (use `parseNames(text)` to split pasted text). Duplicate
-  names are kept as separate students, since two students can share a name.
+- `importStudents(entries)` appends one new student per `{ name, gender? }`
+  to the loaded class, in order (use `parseNames(text)` to split pasted
+  text, `parsePronote(text)` for a Pronote CSV). Duplicate names are kept
+  as separate students, since two students can share a name; the Pronote
+  dialog skips names already in the class (`sameName`) so a re-import adds
+  nothing.
 
 ### localStorage keys
 

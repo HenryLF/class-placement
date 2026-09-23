@@ -59,7 +59,14 @@ export interface StudentsAction {
   addToClass: (studentId: string) => void;
   removeFromClass: (studentId: string) => void;
   deleteStudent: (studentId: string) => void;
-  importStudents: (names: string[]) => void;
+  // One new student per entry with a name, appended to the loaded class.
+  importStudents: (entries: NewStudent[]) => void;
+}
+
+/** What an import knows about a student. */
+export interface NewStudent {
+  name: string;
+  gender?: Gender;
 }
 
 /** A new, unsaved student. Save it with `saveStudent`. */
@@ -320,12 +327,15 @@ export const useStudents = create<StudentsStore & StudentsAction>()(
 
       // One new student per name, appended to the loaded class in order.
       // Same names are kept apart: two students can share a name.
-      importStudents: (names) =>
+      importStudents: (entries) =>
         set((s) => {
-          const created = names
-            .map((n) => n.trim())
-            .filter((n) => n !== "")
-            .map((name) => ({ ...createStudent(), name }));
+          const created = entries
+            .map(({ name, gender }) => ({
+              ...createStudent(),
+              name: name.trim(),
+              ...(gender && GENDERS.includes(gender) && { gender }),
+            }))
+            .filter((st) => st.name !== "");
           const classes = updateCurrentClass(s, (cls) =>
             addIds(cls, created.map((st) => st.id)),
           );

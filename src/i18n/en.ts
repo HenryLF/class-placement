@@ -57,6 +57,7 @@ const en = {
     newStudent: "New student",
     addFromOther: "Add from another class",
     addMultiple: "Add multiple",
+    importPronote: "Import from Pronote csv",
     empty: "No students in this class yet.",
     columns: {
       name: "Name",
@@ -89,6 +90,17 @@ const en = {
     summary: (count: number, className: string) =>
       `Creating ${count} new ${count === 1 ? "student" : "students"} in "${className}".`,
     import: "Import",
+  },
+  pronote: {
+    hint: 'Export the class\'s student list from Pronote as a CSV file, then choose it here. Names ("Élèves") and genders ("Sexe") are imported.',
+    choose: "Choose a CSV file…",
+    skipped: (count: number) =>
+      `${count} already in the class, not added again.`,
+    errors: {
+      notPronote: 'This file has no "Élèves" column. Is it a Pronote CSV export?',
+      empty: "No students found in this file.",
+      unreadable: "This file can't be read.",
+    },
   },
   deleteStudent: {
     title: (name: string, className: string) =>

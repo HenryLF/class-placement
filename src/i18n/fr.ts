@@ -62,6 +62,7 @@ const fr: Translations = {
     newStudent: "Nouvel élève",
     addFromOther: "Ajouter depuis une autre classe",
     addMultiple: "Ajouter plusieurs",
+    importPronote: "Importer depuis un csv Pronote",
     empty: "Aucun élève dans cette classe pour l'instant.",
     columns: {
       name: "Nom",
@@ -93,6 +94,19 @@ const fr: Translations = {
     summary: (count, className) =>
       `Création de ${count} ${count <= 1 ? "nouvel élève" : "nouveaux élèves"} dans « ${className} ».`,
     import: "Importer",
+  },
+  pronote: {
+    hint: "Exportez la liste des élèves de la classe depuis Pronote au format CSV, puis choisissez le fichier ici. Les noms (« Élèves ») et les genres (« Sexe ») sont importés.",
+    choose: "Choisir un fichier CSV…",
+    skipped: (count) =>
+      count <= 1
+        ? `${count} déjà dans la classe, pas ajouté de nouveau.`
+        : `${count} déjà dans la classe, pas ajoutés de nouveau.`,
+    errors: {
+      notPronote: "Ce fichier n'a pas de colonne « Élèves ». Est-ce bien un export CSV de Pronote ?",
+      empty: "Aucun élève trouvé dans ce fichier.",
+      unreadable: "Impossible de lire ce fichier.",
+    },
   },
   deleteStudent: {
     title: (name, className) => `Supprimer ${name} de « ${className} » ?`,

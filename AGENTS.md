@@ -73,7 +73,8 @@ src/
   utils/dnd.ts                Pointer-events drag and drop
   utils/placement.ts          Seating algorithm (pure): place(), findViolations(), cost model
   utils/ids.ts                shortId() for display
-  utils/names.ts              byName: the alphabetical order of every list
+  utils/names.ts              byName: the alphabetical order of every list; sameName
+  utils/pronote.ts            Pronote CSV export parser (pure): decodeText(), parsePronote()
   components/                 Atomic design, see Conventions > Components
     atoms/
       GenderSelect.tsx        Gender <select> (`short` = one-letter labels)
@@ -94,6 +95,7 @@ src/
       StudentCard.tsx         Modal: edit every field of one student
       StudentPicker.tsx       Modal: add students from other classes
       ImportStudentsDialog.tsx Modal: paste names, one student per line
+      PronoteImportDialog.tsx Modal: pick a Pronote CSV, preview, import (skips names already in the class)
       DeleteStudentDialog.tsx "This class only / All classes" question
     pages/
       ClassRoomTab.tsx        Layout picker, grid size, table tools
@@ -103,6 +105,7 @@ src/
 tests/
   setup.ts                    happy-dom preload (unit tests only)
   helpers.ts                  resetStores()
+  fixtures/                   Sample files; the Pronote CSV has made-up students (never commit real ones)
   unit/*.test.ts              Store logic, i18n, helpers
   e2e/server.ts, browser.ts   Start the dev server on a free port; puppeteer helpers
   e2e/*.e2e.test.ts           Browser scenarios
@@ -163,7 +166,7 @@ These are deliberate design decisions. Don't reverse them without asking:
   "delete, but always keep one loaded" rule for both stores.
 - **Actions:** `saveStudent` (full record, adds the student to the loaded
   class if new), `updateStudent` (name, gender, score and frontRow only),
-  `removeFromClass`, `deleteStudent` (all classes), `importStudents(names)`,
+  `removeFromClass`, `deleteStudent` (all classes), `importStudents({ name, gender? }[])`,
   `addToClass`, plus class actions (`newClass`, `loadClass`, `renameClass`,
   `deleteClass`, `duplicateClass`).
 

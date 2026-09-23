@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
 import type { Browser, ElementHandle, Page } from "puppeteer-core";
 import type { Gender, StudentsStore } from "../../src/store/useStudents";
@@ -454,4 +455,62 @@ test("the Classroom and Students pickers name rooms and classes apart", async ()
   expect(rooms.profiles[rooms.currentId]!.name).toBe("Nouvelle salle de cours");
   await page.click("[data-testid='tab-students']");
   expect(await picker()).toEqual(["Classe", "Nouvelle classe"]);
+});
+
+const FIXTURES = resolve(import.meta.dir, "../fixtures");
+
+/** Opens the Pronote dialog and picks `path`. */
+async function pickPronote(path: string) {
+  await page.click("[data-testid='import-pronote']");
+  await page.waitForSelector("dialog[open]");
+  const input = (await page.$("[data-testid='pronote-file']")) as ElementHandle<HTMLInputElement>;
+  await input.uploadFile(path);
+}
+
+test("Import from Pronote adds the file's students with their genders", async () => {
+  await addStudent("Zoe");
+  await pickPronote(`${FIXTURES}/pronote.csv`);
+  await page.waitForSelector("[data-testid='pronote-row']");
+  expect(await page.$$eval("[data-testid='pronote-row']", (trs) => trs.map((tr) => tr.textContent))).toEqual([
+    "MARTIN LéaFemale",
+    "DUPONT HugoMale",
+    "N'DIAYE - ROUX SamMale",
+    "LEROY CamilleFemale",
+  ]);
+  expect(await page.$eval("[data-testid='import-summary']", (p) => p.textContent)).toBe(
+    'Creating 4 new students in "My class".',
+  );
+  await screenshot(page, "import-pronote");
+  await page.click("[data-testid='import-submit']");
+  await dialogClosed();
+  expect(await listedNames()).toEqual([
+    "DUPONT Hugo",
+    "LEROY Camille",
+    "MARTIN Léa",
+    "N'DIAYE - ROUX Sam",
+    "Zoe",
+  ]);
+  const genders = Object.fromEntries(Object.values((await db()).students).map((s) => [s.name, s.gender]));
+  expect(genders).toMatchObject({ "MARTIN Léa": "female", "DUPONT Hugo": "male" });
+
+  // The same export again: everyone is already there.
+  await pickPronote(`${FIXTURES}/pronote.csv`);
+  await page.waitForSelector("[data-testid='import-summary']");
+  expect(await page.$eval("[data-testid='import-summary']", (p) => p.textContent)).toBe(
+    'Creating 0 new students in "My class". 4 already in the class, not added again.',
+  );
+  expect(
+    await page.$eval("[data-testid='import-submit']", (b) => (b as HTMLButtonElement).disabled),
+  ).toBe(true);
+});
+
+test("Import from Pronote explains a file that isn't a Pronote export", async () => {
+  const path = resolve(import.meta.dir, "../../.e2e-screenshots/not-pronote.csv");
+  await Bun.write(path, "Name;Gender\nAlice;F\n");
+  await pickPronote(path);
+  await page.waitForSelector("[data-testid='pronote-error']");
+  expect(await page.$eval("[data-testid='pronote-error']", (p) => p.textContent)).toContain('no "Élèves" column');
+  expect(
+    await page.$eval("[data-testid='import-submit']", (b) => (b as HTMLButtonElement).disabled),
+  ).toBe(true);
 });

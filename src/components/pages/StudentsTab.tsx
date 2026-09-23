@@ -9,6 +9,7 @@ import ui from "../../style/ui.module.css";
 import ProfilePicker from "../molecules/ProfilePicker";
 import DeleteStudentDialog from "../organisms/DeleteStudentDialog";
 import ImportStudentsDialog from "../organisms/ImportStudentsDialog";
+import PronoteImportDialog from "../organisms/PronoteImportDialog";
 import StudentCard from "../organisms/StudentCard";
 import StudentPicker from "../organisms/StudentPicker";
 import StudentTable from "../organisms/StudentTable";
@@ -73,6 +74,7 @@ function StudentsSection({
   const saveStudent = useStudents((st) => st.saveStudent);
   const [picking, setPicking] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [pronote, setPronote] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const members = cls.studentIds
@@ -102,9 +104,13 @@ function StudentsSection({
         <button data-testid="add-multiple" onClick={() => setImporting(true)}>
           + {t.students.addMultiple}
         </button>
+        <button data-testid="import-pronote" onClick={() => setPronote(true)}>
+          + {t.students.importPronote}
+        </button>
       </div>
       {picking && <StudentPicker onClose={() => setPicking(false)} />}
       {importing && <ImportStudentsDialog onClose={() => setImporting(false)} />}
+      {pronote && <PronoteImportDialog onClose={() => setPronote(false)} />}
       {members.length === 0 ? (
         <p className={ui.hint}>{t.students.empty}</p>
       ) : (

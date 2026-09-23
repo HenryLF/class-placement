@@ -21,7 +21,7 @@ export default function ImportStudentsDialog({ onClose }: { onClose: () => void 
     <Modal
       title={t.importStudents.title}
       onClose={onClose}
-      onSubmit={() => importStudents(names)}
+      onSubmit={() => importStudents(names.map((name) => ({ name })))}
     >
       <label className={ui.field}>
         {t.importStudents.label}

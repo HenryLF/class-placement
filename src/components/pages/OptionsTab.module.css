@@ -1,19 +1,9 @@
-/* Opened through the Import button instead. */
-.file {
-  display: none;
-}
-
 .text,
-.ok,
-.error {
+.ok {
   margin: 0;
   font-size: 0.85rem;
 }
 
 .ok {
   color: var(--text-muted);
-}
-
-.error {
-  color: var(--danger-text);
 }

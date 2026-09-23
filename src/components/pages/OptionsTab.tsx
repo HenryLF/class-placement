@@ -114,7 +114,7 @@ function BackupSection() {
         ref={file}
         type="file"
         accept="application/json,.json"
-        className={s.file}
+        className={ui.fileInput}
         data-testid="import-file"
         onChange={(e) => {
           const f = e.currentTarget.files?.[0];
@@ -127,7 +127,7 @@ function BackupSection() {
       <p className={ui.hint}>{t.options.importHint}</p>
       {status && (
         <p
-          className={status.ok ? s.ok : s.error}
+          className={status.ok ? s.ok : ui.error}
           role="status"
           data-testid="import-status"
         >

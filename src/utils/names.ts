@@ -4,3 +4,6 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "bas
 
 export const byName = (a: { name: string }, b: { name: string }) =>
   collator.compare(a.name, b.name);
+
+/** Same name for `byName`: "chloé" matches "Chloe". */
+export const sameName = (a: string, b: string) => collator.compare(a.trim(), b.trim()) === 0;

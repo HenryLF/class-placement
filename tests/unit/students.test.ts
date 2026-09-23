@@ -149,7 +149,7 @@ describe("importing names", () => {
 
   test("importStudents appends one new student per name, in order", () => {
     const existing = add("Zoe");
-    store().importStudents(["Alice", " Bob ", "", "Alice"]);
+    store().importStudents([{ name: "Alice" }, { name: " Bob " }, { name: "" }, { name: "Alice" }]);
     const ids = current().studentIds;
     expect(ids[0]).toBe(existing.id);
     const names = ids.slice(1).map((id) => store().students[id]!.name);
@@ -166,7 +166,7 @@ describe("importing names", () => {
 
   test("importing nothing changes nothing", () => {
     const before = useStudents.getState();
-    store().importStudents(["", "  "]);
+    store().importStudents([{ name: "" }, { name: "  " }]);
     expect(useStudents.getState().students).toBe(before.students);
     expect(useStudents.getState().classes).toBe(before.classes);
   });

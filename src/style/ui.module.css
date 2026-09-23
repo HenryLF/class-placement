@@ -45,6 +45,18 @@
   color: var(--text-faint);
 }
 
+/* A message about something that went wrong, e.g. a file that can't be read. */
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--danger-text);
+}
+
+/* <input type="file">, opened through a button instead. */
+.fileInput {
+  display: none;
+}
+
 button.danger {
   border-color: var(--danger);
   color: var(--danger-text);

@@ -25,7 +25,7 @@ function fill() {
   rooms().addTable(1, 2);
   rooms().setBoard({ col: 1.5, span: 3 });
   classes().renameClass("Class A");
-  classes().importStudents(["Alice", "Bob"]);
+  classes().importStudents([{ name: "Alice" }, { name: "Bob" }]);
   const [alice, bob] = Object.values(classes().students);
   classes().saveStudent({ ...alice!, gender: "female", score: 4, frontRow: true, incompatible: [bob!.id] });
 }
