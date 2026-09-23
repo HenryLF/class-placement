@@ -86,10 +86,11 @@ src/
       Modal.tsx               <Modal> + <ModalClose>: every <dialog> in the app
       ChoiceDialog.tsx        Multi-answer question, built on Modal
       ProfilePicker.tsx       Load / rename / new / copy / delete section
-      InfoButton.tsx          ⓘ button opening an explanation in a Modal
+      InfoButton.tsx          ⓘ button opening an explanation in a Modal (`icon`, `label` to override)
     organisms/
       ClassRoom.tsx           The room: whiteboard row, grid cells, tables, violation arrows
       Pannel.tsx              Collapsible side panel; renders the `tabs` it is given
+      HelpButton.tsx          "?" in the panel header: the app tutorial (`help.steps` in i18n). Workflow only; don't repeat hints
       DragPreview.tsx         Item following the pointer during a drag
       StudentTable.tsx        Inline-editable student rows (🔍 details, 🗑 delete)
       StudentCard.tsx         Modal: edit every field of one student

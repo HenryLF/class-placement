@@ -4,15 +4,20 @@ import { useT } from "../../i18n";
 import s from "./InfoButton.module.css";
 import Modal, { ModalClose } from "./Modal";
 
-// ⓘ button that opens an explanation in a <Modal>. `title` is both the
-// modal's title and, prefixed with "About", the button's accessible name.
+// ⓘ button that opens an explanation in a <Modal>. `title` is the modal's
+// title and, prefixed with "About", the button's accessible name unless
+// `label` is given.
 export default function InfoButton({
   title,
   testId,
+  icon = "ⓘ",
+  label,
   children,
 }: {
   title: string;
   testId?: string;
+  icon?: ComponentChildren;
+  label?: string;
   children: ComponentChildren;
 }) {
   const t = useT();
@@ -23,10 +28,10 @@ export default function InfoButton({
       <button
         type="button"
         data-testid={testId}
-        aria-label={t.common.about(title)}
+        aria-label={label ?? t.common.about(title)}
         onClick={() => setOpen(true)}
       >
-        ⓘ
+        {icon}
       </button>
       {open && (
         <Modal title={title} onClose={() => setOpen(false)}>

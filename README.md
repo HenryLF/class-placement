@@ -74,6 +74,12 @@ assets are cached for a year, and `index.html` is always revalidated.
   listed. Each room + class pair keeps its own placement.
 - **Drag and drop** works with mouse, touch and pen. Press Escape to cancel
   a drag.
+- **Help**: the **?** button next to the panel's ✕ opens a five-step
+  tutorial covering the whole workflow (draw the classroom, enter the
+  class, place, adjust by hand, show it). It explains how the parts fit
+  together; details of each control stay in its own hint or ⓘ button, so
+  update the tutorial (`help` in the translations) only when the workflow
+  changes.
 - **Collapsible panel**: hide the side panel to give the grid the full width.
   Below 768px wide (phones), the panel opens on top of the room instead of
   sharing the width.
@@ -106,10 +112,11 @@ src/
       Modal.tsx           Every popup: <Modal> and <ModalClose>
       ChoiceDialog.tsx    Modal question with several answers
       ProfilePicker.tsx   Load / rename / new / copy / delete a named profile
-      InfoButton.tsx      ⓘ button opening an explanation in a modal
+      InfoButton.tsx      ⓘ (or other icon) button opening an explanation in a modal
     organisms/
       ClassRoom.tsx       Whiteboard row, grid, cells and tables
-      Pannel.tsx          Collapsible side panel, tab bar, language picker
+      Pannel.tsx          Collapsible side panel: header (help, close) and tab bar
+      HelpButton.tsx      "?" button opening the tutorial
       DragPreview.tsx     Item that follows the pointer during a drag
       StudentTable.tsx    Students of a class, one editable row each
       StudentCard.tsx     Popup editing every field of a student

@@ -214,3 +214,40 @@ test("four tabs fit the panel at its minimum width", async () => {
   );
   expect(clipped).toEqual([]);
 });
+
+test("the ? button next to ✕ opens a short tutorial, in the UI language", async () => {
+  // Beside the close button, even at the panel's minimum width.
+  await page.setViewport({ width: 900, height: 800 });
+  const help = (await (await page.$("[data-testid='help']"))!.boundingBox())!;
+  const close = (await (await page.$("[data-testid='hide-pannel']"))!.boundingBox())!;
+  expect(help.x + help.width).toBeLessThanOrEqual(close.x);
+  expect(Math.abs(help.y - close.y)).toBeLessThan(2);
+  expect(await page.$eval("[data-testid='help']", (b) => b.getAttribute("aria-label"))).toBe("Help");
+
+  await page.click("[data-testid='help']");
+  await page.waitForSelector("dialog[open]");
+  expect(await page.$eval("[data-testid='dialog-title']", (h) => h.textContent)).toBe(
+    "How to use Class Placement",
+  );
+  const steps = await page.$$eval("[data-testid='help-step'] strong", (s) => s.map((e) => e.textContent));
+  expect(steps).toEqual([
+    "Draw the classroom",
+    "Enter the class",
+    "Place the students",
+    "Adjust by hand",
+    "Show it",
+  ]);
+  // The whole tutorial is readable without scrolling the page.
+  const dialog = (await (await page.$("dialog[open]"))!.boundingBox())!;
+  expect(dialog.y + dialog.height).toBeLessThanOrEqual(800);
+  await screenshot(page, "help");
+  await page.click("[data-testid='info-close']");
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+
+  await page.select("[data-testid='language']", "fr");
+  await page.click("[data-testid='help']");
+  await page.waitForSelector("dialog[open]");
+  expect(await page.$eval("[data-testid='dialog-title']", (h) => h.textContent)).toBe(
+    "Utiliser Class Placement",
+  );
+});

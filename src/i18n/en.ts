@@ -6,6 +6,32 @@ const en = {
     showPannel: "Show panel",
     hidePannel: "Hide panel",
   },
+  help: {
+    button: "Help",
+    title: "How to use Class Placement",
+    steps: [
+      {
+        title: "Draw the classroom",
+        text: "In the Classroom tab, lay out the tables as they are in the real room, and put the whiteboard where it really is: drag it sideways, or drag its ends to resize it. Placement uses it to know where the front is. Keep one classroom per room you teach in.",
+      },
+      {
+        title: "Enter the class",
+        text: "In the Students tab, add the students by hand, from a list of names, or from a Pronote export. Set gender and score in the list; 🔍 opens the rest, such as incompatibilities and front row. A student can belong to several classes, and is shared by them.",
+      },
+      {
+        title: "Place the students",
+        text: "Classrooms and classes are independent: the Placement tab seats the loaded class in the loaded classroom. Each classroom and class pair keeps its own seating, so loading them again brings it back. Each run of Place students gives a different result.",
+      },
+      {
+        title: "Adjust by hand",
+        text: "Students stay with their table: drag a table to move a student, or onto another table to swap two students. Changing a student's details keeps the seating; place again to take them into account.",
+      },
+      {
+        title: "Show it",
+        text: "Close the panel with ✕ to give the room the whole screen, for example to project the seating plan in class.",
+      },
+    ],
+  },
   common: {
     cancel: "Cancel",
     close: "Close",

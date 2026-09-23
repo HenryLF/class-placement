@@ -9,6 +9,32 @@ const fr: Translations = {
     showPannel: "Afficher le panneau",
     hidePannel: "Masquer le panneau",
   },
+  help: {
+    button: "Aide",
+    title: "Utiliser Class Placement",
+    steps: [
+      {
+        title: "Dessiner la salle",
+        text: "Dans l'onglet Salle de Cours, disposez les tables comme dans la vraie salle, et placez le tableau là où il se trouve\u00a0: faites-le glisser sur le côté, ou tirez ses extrémités pour le redimensionner. Le placement s'en sert pour savoir où est l'avant. Gardez une salle par pièce où vous enseignez.",
+      },
+      {
+        title: "Saisir la classe",
+        text: "Dans l'onglet Élèves, ajoutez les élèves à la main, depuis une liste de noms ou depuis un export Pronote. Réglez le genre et la note dans la liste\u00a0; 🔍 ouvre le reste, comme les incompatibilités et le premier rang. Un élève peut appartenir à plusieurs classes, qui le partagent.",
+      },
+      {
+        title: "Placer les élèves",
+        text: "Salles et classes sont indépendantes\u00a0: l'onglet Placement installe la classe chargée dans la salle chargée. Chaque paire salle et classe garde son propre plan, qui revient quand on les recharge. Chaque clic sur Placer les élèves donne un résultat différent.",
+      },
+      {
+        title: "Ajuster à la main",
+        text: "Les élèves restent attachés à leur table\u00a0: faites glisser une table pour déplacer un élève, ou sur une autre table pour échanger deux élèves. Modifier la fiche d'un élève garde le plan\u00a0; relancez le placement pour en tenir compte.",
+      },
+      {
+        title: "Afficher",
+        text: "Fermez le panneau avec ✕ pour donner tout l'écran à la salle, par exemple pour projeter le plan en classe.",
+      },
+    ],
+  },
   common: {
     cancel: "Annuler",
     close: "Fermer",

@@ -1,0 +1,12 @@
+.steps {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  p {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+  }
+}

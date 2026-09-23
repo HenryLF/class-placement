@@ -2,6 +2,7 @@ import type { ComponentType } from "preact";
 import { useState } from "preact/hooks";
 import { useT } from "../../i18n";
 import { useUI } from "../../store/useUI";
+import HelpButton from "./HelpButton";
 import s from "./Pannel.module.css";
 
 export interface PannelTab {
@@ -39,6 +40,7 @@ export default function Pannel({ tabs }: { tabs: PannelTab[] }) {
     <aside className={s.pannel}>
       <header className={s.header}>
         <h1 className={s.title}>{t.app.title}</h1>
+        <HelpButton />
         <button
           data-testid="hide-pannel"
           aria-label={t.app.hidePannel}
