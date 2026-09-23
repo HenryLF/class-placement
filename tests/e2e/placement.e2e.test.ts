@@ -154,7 +154,7 @@ test("a constraint that can't be kept is marked on both tables and counted", asy
   expect((await placements()).options.incompatible.enabled).toBe(false);
 });
 
-test("options are saved, and the score info popover opens", async () => {
+test("options are saved", async () => {
   await seed([[0, 0]], [student("Alice")]);
   await page.select("[data-testid='opt-score-rule']", "pairMean");
   await page.select("[data-testid='opt-diagonal']", "0");
@@ -163,12 +163,38 @@ test("options are saved, and the score info popover opens", async () => {
   expect(options.score.rule).toBe("pairMean");
   expect(options.diagonal).toBe(0);
   expect(options.gender.weight).toBe(16);
+});
 
-  const open = () => page.$eval("[data-testid='score-help']", (p) => p.matches(":popover-open"));
-  expect(await open()).toBe(false);
-  await page.click("[data-testid='score-info']");
-  expect(await open()).toBe(true);
-  await screenshot(page, "placement-popover");
+test("each constraint's ⓘ button explains it in a modal", async () => {
+  await seed([[0, 0]], [student("Alice")]);
+  const title = () => page.$eval("[data-testid='dialog-title']", (h) => h.textContent);
+  const open = () => page.$$eval("dialog[open]", (d) => d.length);
+  for (const [kind, name] of <[string, string][]>[
+    ["gender", "Alternate genders"],
+    ["incompatible", "Separate incompatible students"],
+    ["score", "Balance scores"],
+    ["front", "Fill the front first"],
+    ["frontRow", "Front-row students near the board"],
+    ["diagonal", "Diagonal neighbors"],
+  ]) {
+    expect(await page.$eval(`[data-testid='info-${kind}']`, (b) => b.ariaLabel)).toBe(
+      `About "${name}"`,
+    );
+    await page.click(`[data-testid='info-${kind}']`);
+    expect(await title()).toBe(name);
+    const text = await page.$eval("[data-testid='info-body']", (b) => b.textContent);
+    expect(text!.length).toBeGreaterThan(100);
+    // Constraints with a weight explain the weights; the diagonal has none.
+    expect(text!.includes("×16")).toBe(kind !== "diagonal");
+    if (kind === "score") {
+      expect(text).toContain("Spread strong and weak:");
+      await screenshot(page, "placement-info");
+    }
+    await page.click("[data-testid='info-close']");
+    expect(await open()).toBe(0);
+  }
+  // Clicks in the modals never reached the options.
+  expect(await page.$eval("[data-testid='opt-diagonal']", (s) => (s as HTMLSelectElement).value)).toBe("0.5");
 });
 
 test("Place is disabled with a hint when there is nothing to place", async () => {

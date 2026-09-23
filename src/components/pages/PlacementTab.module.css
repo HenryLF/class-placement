@@ -40,27 +40,6 @@
   border-radius: 2px;
 }
 
-.popover {
-  width: min(360px, calc(100vw - 32px));
-  box-sizing: border-box;
-  padding: 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--bg-color);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 0.85rem;
-  box-shadow: var(--shadow);
-
-  p {
-    margin: 0 0 8px;
-  }
-
-  p:last-child {
-    margin: 0;
-  }
-}
-
 .text {
   margin: 0;
   font-size: 0.85rem;

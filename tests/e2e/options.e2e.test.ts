@@ -77,7 +77,35 @@ test("the language picker lives in the Options tab", async () => {
   );
 });
 
-test("each theme changes the room and panel colors, and is remembered", async () => {
+test("the About section, last in the tab, says the data stays in the browser", async () => {
+  const last = await page.$eval("aside > section:last-of-type", (s) => s.dataset.testid);
+  expect(last).toBe("about");
+  const text = await page.$eval("[data-testid='about']", (s) => s.textContent);
+  expect(text).toContain("No data is collected");
+  expect(text).toContain("Export as JSON");
+  await page.select("[data-testid='language']", "fr");
+  expect(await page.$eval("[data-testid='about'] h2", (h) => h.textContent)).toBe("À propos");
+});
+
+test("the ⚙ tab icon is larger than the tab labels, without a taller tab bar", async () => {
+  const box = (id: string) =>
+    page.$eval(`[data-testid='${id}']`, (b) => ({
+      font: parseFloat(getComputedStyle(b).fontSize),
+      height: b.getBoundingClientRect().height,
+    }));
+  const icon = await box("tab-options");
+  const text = await box("tab-classroom");
+  expect(icon.font).toBeGreaterThan(text.font * 1.4);
+  expect(icon.height).toBe(text.height);
+});
+
+test("each theme changes the room, table and panel colors, and is remembered", async () => {
+  await page.click("[data-drop-id='cell:0:0']");
+  const table = () =>
+    page.$eval("[data-testid='table']", (t) => {
+      const s = getComputedStyle(t);
+      return `${s.backgroundColor} ${s.borderColor}`;
+    });
   // The room is the grid's parent; the panel shows #root's color.
   const room = () =>
     page.evaluate(
@@ -88,14 +116,19 @@ test("each theme changes the room and panel colors, and is remembered", async ()
   const panel = () =>
     page.evaluate(() => getComputedStyle(document.getElementById("root")!).backgroundColor);
 
-  const seen = new Set<string>();
+  const rooms = new Set<string>();
+  const panels = new Set<string>();
+  const tables = new Set<string>();
   for (const theme of ["indigo", "light", "chalk"]) {
     await page.select("[data-testid='theme']", theme);
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
-    seen.add(`${await room()} / ${await panel()}`);
+    if (theme === "indigo") expect(await room()).not.toBe("rgb(255, 255, 255)");
+    rooms.add(await room());
+    panels.add(await panel());
+    tables.add(await table());
     await screenshot(page, `theme-${theme}`);
   }
-  expect(seen.size).toBe(3);
+  expect([rooms.size, panels.size, tables.size]).toEqual([3, 3, 3]);
 
   await page.reload();
   await page.waitForSelector("aside");

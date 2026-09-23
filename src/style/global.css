@@ -16,13 +16,13 @@
   --danger-text: #e0a0b0;
   --danger-surface: #603040;
 
-  /* Room (light) */
-  --paper: #fff;
-  --grid-line: #d0d0e0;
-  --highlight: #dde3ff;
-  --wood: #f3e2c7;
-  --wood-border: #a07a4a;
-  --wood-text: #4a3520;
+  /* Room: a soft indigo floor, ivory tables */
+  --paper: #dfe1f3;
+  --grid-line: #b3b7d9;
+  --highlight: #c3c9f2;
+  --table: #fdf9f0;
+  --table-border: #5a5f9e;
+  --table-text: #22244f;
   --board: #f8f8f8;
   --board-border: #707080;
   --board-text: #404050;
@@ -40,7 +40,7 @@
 }
 
 /* Themes (store/useUI.ts sets <html data-theme>). "indigo" is :root above;
-   the others override the panel and room colors only. */
+   the others override the panel, room and table colors only. */
 :root[data-theme="light"] {
   --bg-color: #eef0f8;
   --surface: #ffffff;
@@ -57,6 +57,9 @@
   --paper: #f7f7fa;
   --grid-line: #d4d4e2;
   --highlight: #dde3ff;
+  --table: #f3e2c7;
+  --table-border: #a07a4a;
+  --table-text: #4a3520;
   --shadow: 0 4px 12px rgb(0 0 40 / 0.15);
 }
 
@@ -73,6 +76,9 @@
   --paper: #2e4a3b;
   --grid-line: #4c6c5b;
   --highlight: #42664f;
+  --table: #d9bf94;
+  --table-border: #7a5a32;
+  --table-text: #2e2010;
 }
 
 html,

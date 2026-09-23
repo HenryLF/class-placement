@@ -79,11 +79,11 @@ test("the bin and the drag preview only show while a table is dragged", async ()
   await page.mouse.down();
   // Over the panel, which isn't a drop target.
   await page.mouse.move(1100, a.y + 50, { steps: 5 });
-  expect(await page.$("[aria-hidden] img")).not.toBeNull();
+  expect(await page.$("[aria-hidden] > div")).not.toBeNull();
   expect(await page.$(trash)).not.toBeNull();
   await screenshot(page, "drag-preview");
   await page.mouse.up();
-  expect(await page.$("[aria-hidden] img")).toBeNull();
+  expect(await page.$("[aria-hidden] > div")).toBeNull();
   expect(await page.$(trash)).toBeNull();
   // Dropped outside any target: the table stays where it was.
   expect((await room()).tables).toEqual(["0:0"]);

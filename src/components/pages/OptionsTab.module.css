@@ -3,6 +3,7 @@
   display: none;
 }
 
+.text,
 .ok,
 .error {
   margin: 0;

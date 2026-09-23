@@ -22,6 +22,14 @@ export default function OptionsTab() {
       </section>
       <ThemeSection />
       <BackupSection />
+      <section className={ui.section} data-testid="about">
+        <h2>{t.options.aboutHeading}</h2>
+        {t.options.about.map((text) => (
+          <p key={text} className={s.text}>
+            {text}
+          </p>
+        ))}
+      </section>
     </>
   );
 }

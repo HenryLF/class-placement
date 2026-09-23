@@ -12,6 +12,7 @@ const en = {
     save: "Save",
     delete: "Delete",
     unnamed: "(unnamed)",
+    about: (name: string) => `About "${name}"`,
   },
   tabs: {
     classroom: "Classroom",
@@ -123,6 +124,12 @@ const en = {
     importConfirm: (date: string) =>
       `Replace all current data with the export from ${date}? This can't be undone.`,
     imported: "Data imported.",
+    aboutHeading: "About",
+    about: [
+      "Class Placement runs entirely in your browser. No data is collected or sent anywhere: there is no server, no account and no tracking.",
+      "Your rooms, classes and students are saved in this browser, on this device only. Clearing the browser's data for this site deletes them.",
+      "To keep a backup, or to move your data to another device or browser, use \"Export as JSON\" above, then \"Import from JSON\" on the other side.",
+    ],
     errors: {
       invalid: "This file isn't valid JSON.",
       notBackup: "This file isn't a Class Placement export.",
@@ -142,20 +149,41 @@ const en = {
       spread: "Spread strong and weak",
       pairMean: "Pair strong with weak",
     },
-    ruleInfo: "About score rules",
-    ruleHelp: {
-      spread:
-        "Spread strong and weak: avoids two strong, or two weak, students side by side. Anyone else can sit anywhere. With a mean of 3, 5 next to 5 is avoided, while 5 next to 1 or 5 next to 3 is fine.",
-      pairMean:
-        "Pair strong with weak: each pair of neighbors should average to the class mean, so strong students end up next to weak ones. With a mean of 3, 5 next to 1 is preferred and 5 next to 3 is slightly avoided.",
-      noScore: "Students without a score are ignored, and don't count in the mean.",
-    },
     diagonal: "Diagonal neighbors",
     diagonals: { off: "Ignored", quarter: "¼ weight", half: "½ weight", full: "Full weight" },
-    diagonalHint: "Side neighbors always count fully.",
     front: "Fill the front first",
     frontRow: "Front-row students near the board",
-    frontHint: "Distance is measured to the middle of the whiteboard, so the front center fills first. Front-row students are set in their card.",
+    // Shown by each constraint's ⓘ button, one string per paragraph.
+    help: {
+      gender: [
+        "Avoids seating two girls, or two boys, next to each other, so genders alternate across the room.",
+        "Students whose gender is \"Other\" can sit next to anyone. Arrows mark same-gender neighbors.",
+      ],
+      incompatible: [
+        "Keeps apart the students marked as incompatible in a student's card, so they never sit next to each other.",
+        "It works both ways: marking Alice as incompatible with Bob also marks Bob as incompatible with Alice. Arrows mark incompatible neighbors.",
+      ],
+      score: [
+        "Uses the students' scores (1 to 5, set in the list or in their card) to mix levels. The rule chooses how:",
+        "Spread strong and weak: avoids two strong, or two weak, students side by side. Anyone else can sit anywhere. With a mean of 3, 5 next to 5 is avoided, while 5 next to 1 or 5 next to 3 is fine.",
+        "Pair strong with weak: each pair of neighbors should average to the class mean, so strong students end up next to weak ones. With a mean of 3, 5 next to 1 is preferred and 5 next to 3 is slightly avoided.",
+        "Students without a score are ignored, and don't count in the mean. Arrows mark two neighbors on the same side of the mean, each at least 1 point from it.",
+      ],
+      front: [
+        "Seats students as close to the whiteboard as possible, so the empty tables end up at the back.",
+        "Distance is measured to the middle of the whiteboard, so the front center fills first. Only useful when there are more tables than students.",
+      ],
+      frontRow: [
+        "Brings the students who need to sit at the front closer to the whiteboard. Tick \"Front row\" in a student's card to mark them.",
+        "Arrows mark a front-row student when a table closer to the board is empty, or taken by a student who doesn't need the front.",
+      ],
+      diagonal: [
+        "Sets whether students who only touch by a corner count as neighbors for the constraints above.",
+        "Side neighbors (left, right, in front and behind) always count fully. With ½ weight, a diagonal neighbor counts half as much.",
+      ],
+      weights:
+        "Low, Medium and High weigh ×1, ×4 and ×16: they decide which constraint wins when not all of them can be met.",
+    },
     showMarks: "Show broken constraints on the tables",
     disabledHint: (count: number) =>
       `${count} ${count === 1 ? "table is" : "tables are"} switched off. Click a table in the room to switch it on or off.`,

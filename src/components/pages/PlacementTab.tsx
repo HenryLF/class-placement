@@ -4,6 +4,7 @@ import { useCurrentClass } from "../../store/useClassRoom";
 import { usePlacements, useSeating } from "../../store/usePlacements";
 import { useCurrentStudentClass } from "../../store/useStudents";
 import ui from "../../style/ui.module.css";
+import InfoButton from "../molecules/InfoButton";
 import {
   DIAGONALS,
   place,
@@ -73,40 +74,35 @@ function ConstraintsSection() {
               </option>
             ))}
           </select>
-          <button
-            data-testid="score-info"
-            popovertarget="score-info"
-            aria-label={t.placement.ruleInfo}
-          >
-            ⓘ
-          </button>
-        </div>
-        <div id="score-info" popover className={s.popover} data-testid="score-help">
-          <p>{t.placement.ruleHelp.spread}</p>
-          <p>{t.placement.ruleHelp.pairMean}</p>
-          <p className={ui.hint}>{t.placement.ruleHelp.noScore}</p>
         </div>
       </ConstraintRow>
       <ConstraintRow kind="front" label={t.placement.front} />
       <ConstraintRow kind="frontRow" label={t.placement.frontRow} />
-      <p className={ui.hint}>{t.placement.frontHint}</p>
-      <label className={ui.field}>
+      {/* Not a <label>: a click in the info modal would reach the select. */}
+      <div className={ui.field}>
         {t.placement.diagonal}
-        <select
-          data-testid="opt-diagonal"
-          value={options.diagonal}
-          onChange={(e) =>
-            setOptions({ diagonal: Number(e.currentTarget.value) as Diagonal })
-          }
-        >
-          {DIAGONALS.map((d) => (
-            <option key={d} value={d}>
-              {t.placement.diagonals[DIAGONAL_KEYS[d]]}
-            </option>
-          ))}
-        </select>
-      </label>
-      <p className={ui.hint}>{t.placement.diagonalHint}</p>
+        <div className={s.rule}>
+          <select
+            data-testid="opt-diagonal"
+            aria-label={t.placement.diagonal}
+            value={options.diagonal}
+            onChange={(e) =>
+              setOptions({ diagonal: Number(e.currentTarget.value) as Diagonal })
+            }
+          >
+            {DIAGONALS.map((d) => (
+              <option key={d} value={d}>
+                {t.placement.diagonals[DIAGONAL_KEYS[d]]}
+              </option>
+            ))}
+          </select>
+          <InfoButton title={t.placement.diagonal} testId="info-diagonal">
+            {t.placement.help.diagonal.map((text) => (
+              <p key={text}>{text}</p>
+            ))}
+          </InfoButton>
+        </div>
+      </div>
     </section>
   );
 }
@@ -152,6 +148,12 @@ function ConstraintRow({
           </option>
         ))}
       </select>
+      <InfoButton title={label} testId={`info-${kind}`}>
+        {t.placement.help[kind].map((text) => (
+          <p key={text}>{text}</p>
+        ))}
+        <p className={ui.hint}>{t.placement.help.weights}</p>
+      </InfoButton>
       {children}
     </div>
   );

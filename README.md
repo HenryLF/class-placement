@@ -55,8 +55,8 @@ assets are cached for a year, and `index.html` is always revalidated.
 - **Placement**: seats the loaded class on the loaded room's tables. Each
   constraint can be switched on or off and given a weight: alternate
   genders, separate incompatible students, and balance scores (either
-  spread strong and weak students apart, or pair strong with weak; ⓘ
-  explains the difference). Diagonal neighbors count with a chosen weight.
+  spread strong and weak students apart, or pair strong with weak).
+  Every constraint has an ⓘ button that explains it in a dialog. Diagonal neighbors count with a chosen weight.
   **Fill the front first** favors tables close to the middle of the
   whiteboard, and **front-row students** (a checkbox in the student card,
   shown as ⬆ in the list) are pulled to the front more strongly.
@@ -73,18 +73,18 @@ assets are cached for a year, and `index.html` is always revalidated.
   sharing the width.
 - **Options** (⚙ tab):
   - **Language**: English (default) or French.
-  - **Theme**: Indigo (default), Light or Chalkboard, which change the room's and the panel's colors.
+  - **Theme**: Indigo (default), Light or Chalkboard, which change the panel's, the room's and the tables' colors.
   - **Import / export**: export downloads everything in one JSON file (rooms, classes, students, placements, settings). Import replaces all current data with such a file, after a confirmation. Files from older versions are migrated.
+  - **About**: no data is collected; everything stays in the browser, and JSON export / import is the way to back it up or move it.
 
 ## Project structure
 
 ```
 index.ts                  Dev server (Bun.serve, HMR off)
-global.d.ts               Module types for *.module.css and *.png
+global.d.ts               Module types for *.module.css
 src/
   index.html              HTML entry
   index.tsx               App root: ClassRoom + Pannel (with the tabs) + DragPreview
-  assets/                 Images (imported via the @assets/* alias)
   style/
     global.css            Design tokens (CSS variables) and base elements
     ui.module.css         Shared classes: section, field, row, hint, table…
@@ -100,6 +100,7 @@ src/
       Modal.tsx           Every popup: <Modal> and <ModalClose>
       ChoiceDialog.tsx    Modal question with several answers
       ProfilePicker.tsx   Load / rename / new / copy / delete a named profile
+      InfoButton.tsx      ⓘ button opening an explanation in a modal
     organisms/
       ClassRoom.tsx       Grid, cells, tables and whiteboard zones
       Pannel.tsx          Collapsible side panel, tab bar, language picker
@@ -113,7 +114,7 @@ src/
       ClassRoomTab.tsx    Room layouts, grid size, table tools
       StudentsTab.tsx     Student classes and their students
       PlacementTab.tsx    Placement options, Place / Clear, results
-      OptionsTab.tsx      Language, theme, JSON import / export
+      OptionsTab.tsx      Language, theme, JSON import / export, About
   store/
     useClassRoom.ts       Room layouts and their actions (persisted)
     useStudents.ts        Students and student classes (persisted)
@@ -139,10 +140,11 @@ tests/
 ### Styles
 
 - [style/global.css](src/style/global.css) defines the color, radius and
-  font tokens (`--surface`, `--text-muted`, `--danger`, `--wood`, …) and the
+  font tokens (`--surface`, `--text-muted`, `--danger`, `--table`, …) and the
   base look of `button`, `input` and `select`. Use the tokens instead of
   hard-coded colors. The Light and Chalkboard themes redefine the tokens
-  under `:root[data-theme="…"]`.
+  under `:root[data-theme="…"]`, including the room (`--paper`, …) and
+  table (`--table`, `--table-border`, `--table-text`) colors.
 - [style/ui.module.css](src/style/ui.module.css) holds classes shared by
   several components. Import it as `ui`: `className={ui.section}`,
   `ui.field`, `ui.row`, `ui.hint`, `ui.table`, `ui.id`, the
@@ -150,7 +152,7 @@ tests/
   `ui.dialog`, `ui.dialogBody`, `ui.dialogTitle`, `ui.actions`, `ui.spacer`
   (the first three are applied by `<Modal>`).
 - [style/furniture.module.css](src/style/furniture.module.css) holds the
-  look of the room's tables (`f.wood`) and whiteboard (`f.board`), and
+  look of the room's tables (`f.table`) and whiteboard (`f.board`), and
   `f.draggable` for drag sources. Import it as `f`.
 - Anything specific to one component goes in its sibling `*.module.css`,
   imported as `s`.

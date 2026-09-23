@@ -56,10 +56,9 @@ bun run test:all
 
 ```
 index.ts                      Dev server: Bun.serve + HTML import, hmr: false (see Gotchas)
-global.d.ts                   Types for *.module.css and *.png imports
+global.d.ts                   Types for *.module.css imports
 src/
   index.html / index.tsx      Entry; <App> = ClassRoom + Pannel (given the pages as tabs) + DragPreview
-  assets/                     Images, imported as "@assets/…" (tsconfig paths)
   style/global.css            Design tokens (CSS vars), theme overrides, base button/input/select/textarea
   style/ui.module.css         Shared panel classes, imported as `ui`
   style/furniture.module.css  Table/whiteboard look + drag-source rules, imported as `f`
@@ -78,12 +77,13 @@ src/
       GenderSelect.tsx        Gender <select> (`short` = one-letter labels)
       ScoreSelect.tsx         Score <select>: none, 1–5
       LanguageSelect.tsx      UI language <select>
-      TableShape.tsx          A table's look (wood + icon, or the seated student's name); size via className
+      TableShape.tsx          A table's look (theme colors, plus the seated student's name); width via className
       Whiteboard.tsx          The whiteboard's look; size via className
     molecules/
       Modal.tsx               <Modal> + <ModalClose>: every <dialog> in the app
       ChoiceDialog.tsx        Multi-answer question, built on Modal
       ProfilePicker.tsx       Load / rename / new / copy / delete section
+      InfoButton.tsx          ⓘ button opening an explanation in a Modal
     organisms/
       ClassRoom.tsx           The room: grid cells, tables, whiteboard zones, violation arrows
       Pannel.tsx              Collapsible side panel; renders the `tabs` it is given
@@ -96,8 +96,8 @@ src/
     pages/
       ClassRoomTab.tsx        Layout picker, grid size, table tools
       StudentsTab.tsx         Student-class picker, student list, dialogs
-      PlacementTab.tsx        Constraint options, Place / Clear, unplaced + violation summary
-      OptionsTab.tsx          ⚙ tab: language, theme, JSON import / export
+      PlacementTab.tsx        Constraint options (each with an ⓘ help modal), Place / Clear, unplaced + violation summary
+      OptionsTab.tsx          ⚙ tab: language, theme, JSON import / export, About
 tests/
   setup.ts                    happy-dom preload (unit tests only)
   helpers.ts                  resetStores()
@@ -246,10 +246,10 @@ explained in the README.
   - Don't infer gender in French wording (the app already avoids "il/elle").
 - **Styles:**
   - Colors and radii come from the CSS variables in `global.css`; don't hard-code hex values in modules.
-  - Themes (`indigo` = `:root`, `light`, `chalk`) override those variables under `:root[data-theme=…]`. A new color token needs a value in every theme where the default doesn't read well.
+  - Themes (`indigo` = `:root`, `light`, `chalk`) override those variables under `:root[data-theme=…]`. A new color token needs a value in every theme where the default doesn't read well. Room (`--paper`, `--grid-line`, `--highlight`) and table (`--table`, `--table-border`, `--table-text`) colors are set per theme.
   - Reusable classes go in `ui.module.css`, imported as `ui`; the table/whiteboard look in `furniture.module.css`, imported as `f`; component-specific CSS goes in a sibling module, imported as `s`.
   - The panel can be as narrow as 320px. Check layouts there (there is an e2e test for it). Below 768px it overlays the room (fixed, full width up to 420px) instead of shrinking it.
-- **Dialogs:** always use `<Modal>` ([molecules/Modal.tsx](src/components/molecules/Modal.tsx)), never a raw `<dialog>`. It opens with `showModal()`, labels the dialog with its `title` (`data-testid="dialog-title"`), and closes on Escape and on a backdrop click. Close buttons are `<ModalClose>` (optional `onClick` runs first). With `onSubmit`, the body is a `<form>`: forms keep a draft and commit in `onSubmit`, and every other way of closing discards it. For a question with several answers, use `ChoiceDialog`.
+- **Dialogs:** always use `<Modal>` ([molecules/Modal.tsx](src/components/molecules/Modal.tsx)), never a raw `<dialog>`. It opens with `showModal()`, labels the dialog with its `title` (`data-testid="dialog-title"`), and closes on Escape and on a backdrop click. Close buttons are `<ModalClose>` (optional `onClick` runs first). With `onSubmit`, the body is a `<form>`: forms keep a draft and commit in `onSubmit`, and every other way of closing discards it. For a question with several answers, use `ChoiceDialog`; for an explanation behind an ⓘ button, `InfoButton`.
 - **Drag and drop:** use `useDraggable(payload)` and `useDropTarget(id, { accepts, onDrop })` from `utils/dnd.ts`, never HTML5 `draggable`, which doesn't work on touch screens. Give drag sources the `f.draggable` class (grab cursor, `touch-action: none`).
 - **Zustand selectors:** select one value at a time (`useStore((s) => s.x)`). A selector must not return a new object, array or Map on every call, or the component re-renders forever in v5. Derive values with `useMemo` over a selected value instead (see `useClassesByStudent`).
 - **Test hooks:** interactive elements used by tests carry `data-testid`. Add one when you add UI.

@@ -15,9 +15,6 @@
       "bun"
     ],
     "paths": {
-      "@assets/*": [
-        "./src/assets/*"
-      ],
       // zustand's hooks import "react"; Bun resolves it to Preact here, at
       // runtime and when bundling.
       "react": [

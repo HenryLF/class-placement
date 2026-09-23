@@ -15,6 +15,7 @@ const fr: Translations = {
     save: "Enregistrer",
     delete: "Supprimer",
     unnamed: "(sans nom)",
+    about: (name) => `À propos de « ${name} »`,
   },
   tabs: {
     classroom: "Salle",
@@ -125,6 +126,12 @@ const fr: Translations = {
     importConfirm: (date) =>
       `Remplacer toutes les données actuelles par l'export du ${date} ? Cette action est irréversible.`,
     imported: "Données importées.",
+    aboutHeading: "À propos",
+    about: [
+      "Plan de classe fonctionne entièrement dans votre navigateur. Aucune donnée n'est collectée ni envoyée où que ce soit : pas de serveur, pas de compte, pas de pistage.",
+      "Vos salles, classes et élèves sont enregistrés dans ce navigateur, sur cet appareil uniquement. Effacer les données de navigation de ce site les supprime.",
+      "Pour garder une sauvegarde, ou passer vos données sur un autre appareil ou navigateur, utilisez « Exporter en JSON » ci-dessus, puis « Importer depuis un JSON » de l'autre côté.",
+    ],
     errors: {
       invalid: "Ce fichier n'est pas un JSON valide.",
       notBackup: "Ce fichier n'est pas un export de Plan de classe.",
@@ -144,20 +151,40 @@ const fr: Translations = {
       spread: "Disperser forts et faibles",
       pairMean: "Associer forts et faibles",
     },
-    ruleInfo: "À propos des règles de notes",
-    ruleHelp: {
-      spread:
+    help: {
+      gender: [
+        "Évite d'asseoir deux filles, ou deux garçons, côte à côte, pour que les genres alternent dans la salle.",
+        "Les élèves dont le genre est « Autre » peuvent s'asseoir à côté de n'importe qui. Les flèches signalent les voisins de même genre.",
+      ],
+      incompatible: [
+        "Éloigne les élèves marqués comme incompatibles dans la fiche d'un élève, pour qu'ils ne soient jamais voisins.",
+        "Cela vaut dans les deux sens : marquer Alice incompatible avec Bob marque aussi Bob incompatible avec Alice. Les flèches signalent les voisins incompatibles.",
+      ],
+      score: [
+        "Utilise les notes des élèves (de 1 à 5, dans la liste ou dans leur fiche) pour mélanger les niveaux. La règle choisit comment :",
         "Disperser forts et faibles : évite deux élèves de bon niveau, ou deux élèves en difficulté, côte à côte. Les autres peuvent s'asseoir n'importe où. Avec une moyenne de 3, un 5 à côté d'un 5 est évité, alors qu'un 5 à côté d'un 1 ou d'un 3 convient.",
-      pairMean:
         "Associer forts et faibles : chaque paire de voisins doit avoir en moyenne la moyenne de la classe, ce qui place les élèves de bon niveau à côté des élèves en difficulté. Avec une moyenne de 3, un 5 à côté d'un 1 est préféré, et un 5 à côté d'un 3 est un peu évité.",
-      noScore: "Les élèves sans note sont ignorés et ne comptent pas dans la moyenne.",
+        "Les élèves sans note sont ignorés et ne comptent pas dans la moyenne. Les flèches signalent deux voisins du même côté de la moyenne, chacun à au moins 1 point d'elle.",
+      ],
+      front: [
+        "Assoit les élèves le plus près possible du tableau, pour que les tables vides restent au fond.",
+        "La distance est mesurée jusqu'au milieu du tableau, donc le centre de l'avant se remplit en premier. Utile seulement s'il y a plus de tables que d'élèves.",
+      ],
+      frontRow: [
+        "Rapproche du tableau les élèves qui doivent être devant. Cochez « Premier rang » dans la fiche d'un élève pour l'indiquer.",
+        "Les flèches signalent un élève du premier rang quand une table plus proche du tableau est vide, ou occupée par un élève qui n'a pas besoin d'être devant.",
+      ],
+      diagonal: [
+        "Indique si les élèves qui ne se touchent que par un coin comptent comme voisins pour les contraintes ci-dessus.",
+        "Les voisins de côté (à gauche, à droite, devant et derrière) comptent toujours pleinement. Avec un poids ½, un voisin en diagonale compte moitié moins.",
+      ],
+      weights:
+        "Faible, Moyen et Fort pèsent ×1, ×4 et ×16 : ils décident quelle contrainte l'emporte quand elles ne peuvent pas toutes être respectées.",
     },
     diagonal: "Voisins en diagonale",
     diagonals: { off: "Ignorés", quarter: "Poids ¼", half: "Poids ½", full: "Poids plein" },
-    diagonalHint: "Les voisins de côté comptent toujours pleinement.",
     front: "Remplir l'avant d'abord",
     frontRow: "Élèves du premier rang près du tableau",
-    frontHint: "La distance est mesurée jusqu'au milieu du tableau, donc le centre de l'avant se remplit en premier. Le premier rang se règle dans la fiche de l'élève.",
     showMarks: "Afficher les contraintes enfreintes sur les tables",
     disabledHint: (count) =>
       `${count} table${count > 1 ? "s" : ""} désactivée${count > 1 ? "s" : ""}. Cliquez sur une table de la salle pour l'activer ou la désactiver.`,

@@ -1,19 +1,6 @@
 .table {
   aspect-ratio: 4/3;
   overflow: hidden;
-
-  img {
-    display: block;
-    height: 100%;
-    margin: 0 auto;
-    object-fit: contain;
-    pointer-events: none;
-  }
-}
-
-/* A name has no intrinsic height like the icon, so fill the cell's width. */
-.seated {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
