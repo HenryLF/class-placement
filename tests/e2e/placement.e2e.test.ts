@@ -33,10 +33,10 @@ async function seed(cells: [number, number][], students: Student[]) {
   await page.evaluate(
     (cells, students) => {
       const tables = cells.map(([row, col]) => ({ id: `t${row}-${col}`, row, col }));
-      const room = { id: "room", name: "Room 1", rows: 4, cols: 4, tables, board: "top" };
+      const room = { id: "room", name: "Room 1", rows: 4, cols: 4, tables, board: { col: 1, span: 2 } };
       localStorage.setItem(
         "class-placement",
-        JSON.stringify({ version: 2, state: { profiles: { room }, currentId: "room" } }),
+        JSON.stringify({ version: 3, state: { profiles: { room }, currentId: "room" } }),
       );
       const cls = { id: "cls", name: "6B", studentIds: students.map((s) => s.id) };
       localStorage.setItem(

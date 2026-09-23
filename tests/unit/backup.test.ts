@@ -23,7 +23,7 @@ const classNames = () => Object.values(classes().classes).map((c) => c.name).sor
 function fill() {
   rooms().renameClass("Room A");
   rooms().addTable(1, 2);
-  rooms().setBoard("bottom");
+  rooms().setBoard({ col: 1.5, span: 3 });
   classes().renameClass("Class A");
   classes().importStudents(["Alice", "Bob"]);
   const [alice, bob] = Object.values(classes().students);
@@ -45,7 +45,7 @@ describe("createExport", () => {
   test("rooms: every layout, and nothing else", () => {
     fill();
     const file = createExport("rooms", new Date("2026-09-23T10:00:00Z"));
-    expect(file).toMatchObject({ app: "class-placement", kind: "rooms", version: 2 });
+    expect(file).toMatchObject({ app: "class-placement", kind: "rooms", version: 3 });
     expect(file.exportedAt).toBe("2026-09-23T10:00:00.000Z");
     expect(file.state).toEqual({ profiles: rooms().profiles });
   });
@@ -75,7 +75,7 @@ describe("importing", () => {
     expect(roomNames()).toEqual(["Room A", "Room A"]);
     const added = rooms().profiles[rooms().currentId]!;
     expect(before[added.id]).toBeUndefined();
-    expect(added).toMatchObject({ name: "Room A", rows: 9, cols: 9, board: "bottom" });
+    expect(added).toMatchObject({ name: "Room A", rows: 9, cols: 9, board: { col: 1.5, span: 3 } });
     expect(added.tables.map((t) => [t.row, t.col])).toEqual([[1, 2]]);
     // Classes are untouched.
     expect(classNames()).toEqual(["Class A"]);
@@ -152,7 +152,25 @@ describe("importing", () => {
   test("old data in a file is migrated", () => {
     const old = { profiles: { r: { id: "r", name: "Old", rows: 2, cols: 2, tables: [] } } };
     const text = JSON.stringify({ app: "class-placement", format: 2, kind: "rooms", version: 1, state: old });
-    expect(parseImport(text).rooms[0]!.board).toBe("top");
+    expect(parseImport(text).rooms[0]!.board).toEqual({ col: 0, span: 2 });
+
+    // v2: a room with the whiteboard at the bottom is flipped.
+    const v2 = { profiles: { r: { ...old.profiles.r, tables: [{ row: 1, col: 0 }], board: "bottom" } } };
+    const [room] = parseImport(JSON.stringify({ app: "class-placement", format: 2, kind: "rooms", version: 2, state: v2 })).rooms;
+    expect(room!.tables.map((t) => [t.row, t.col])).toEqual([[0, 0]]);
+  });
+
+  test("an imported whiteboard is kept inside its grid, or reset when damaged", () => {
+    const board = (b: unknown) => {
+      const state = { profiles: { r: { rows: 2, cols: 4, tables: [], board: b } } };
+      const text = JSON.stringify({ app: "class-placement", format: 2, kind: "rooms", version: 3, state });
+      return parseImport(text).rooms[0]!.board;
+    };
+    expect(board({ col: 1, span: 2 })).toEqual({ col: 1, span: 2 });
+    expect(board({ col: 3.2, span: 9 })).toEqual({ col: 0, span: 4 });
+    // Damaged: centered, as in a new room.
+    expect(board({ col: "0", span: 1 })).toEqual({ col: 1, span: 2 });
+    expect(board(undefined)).toEqual({ col: 1, span: 2 });
   });
 
   test("the all-in-one exports of older versions add their rooms and classes", () => {

@@ -35,10 +35,13 @@ assets are cached for a year, and `index.html` is always revalidated.
   placed table.
 - **Tables**: click an empty cell to add a table. Drag a table to move it;
   dropping on another table swaps them. While a table is dragged, a bin
-  appears in the room's bottom-left corner: drop it there to remove it.
+  appears at the left end of the whiteboard row: drop it there to remove it.
   Clicking a table switches it off for the
   loaded class's placement (greyed out; nobody is seated there).
-- **Whiteboard**: sits above or below the grid; drag it to the other side.
+- **Whiteboard**: sits in its own row above the grid. Drag it sideways to
+  move it, or drag its edges to resize it; it follows the columns in half
+  steps. Its position is saved with the layout, and placement measures each
+  table's distance to it.
 - **Room layouts**: create, rename, load and delete named layouts. Every
   change is saved automatically.
 - **Students**: classes of students, each listed as a table. Name, gender
@@ -57,7 +60,7 @@ assets are cached for a year, and `index.html` is always revalidated.
   genders, separate incompatible students, and balance scores (either
   spread strong and weak students apart, or pair strong with weak).
   Every constraint has an ⓘ button that explains it in a dialog. Diagonal neighbors count with a chosen weight.
-  **Fill the front first** favors tables close to the middle of the
+  **Fill the front first** favors tables close to the
   whiteboard, and **front-row students** (a checkbox in the student card,
   shown as ⬆ in the list) are pulled to the front more strongly.
   With no constraint, seats are random. Seated tables show the student's
@@ -102,7 +105,7 @@ src/
       ProfilePicker.tsx   Load / rename / new / copy / delete a named profile
       InfoButton.tsx      ⓘ button opening an explanation in a modal
     organisms/
-      ClassRoom.tsx       Grid, cells, tables and whiteboard zones
+      ClassRoom.tsx       Whiteboard row, grid, cells and tables
       Pannel.tsx          Collapsible side panel, tab bar, language picker
       DragPreview.tsx     Item that follows the pointer during a drag
       StudentTable.tsx    Students of a class, one editable row each
@@ -171,7 +174,8 @@ interface ClassProfile {
   rows: number;
   cols: number;
   tables: { id: string; row: number; col: number }[];
-  board: "top" | "bottom";
+  // The whiteboard above the grid: left edge and width, in columns.
+  board: { col: number; span: number };
 }
 ```
 
@@ -253,7 +257,7 @@ drop links to deleted students, in case stored data was edited by hand.
 | `class-placement-ui`       | UI preferences (panel open/closed, theme)  |
 | `class-placement-lang`     | Selected language                          |
 
-`class-placement` is at version 2, `class-placement-students` at version 3 and `class-placement-placements` at version 2. When you change a stored shape, bump `version` and handle
+`class-placement` is at version 3, `class-placement-students` at version 3 and `class-placement-placements` at version 2. When you change a stored shape, bump `version` and handle
 the old shape in `migrate` so existing saved data keeps loading.
 
 ### Storage: why localStorage (and when to switch)
@@ -289,7 +293,7 @@ drag and drop, which doesn't work on most touch screens.
 - `useIsDragging(match)` tells a source it's being dragged, so it can dim
   itself.
 
-Payloads are `{ kind: "table", id }` and `{ kind: "board" }`. Drag sources need `touch-action: none` (the `f.draggable` class),
+Payloads are `{ kind: "table", id }`; the whiteboard is moved with its own pointer handling, since it is never dropped anywhere. Drag sources need `touch-action: none` (the `f.draggable` class),
 otherwise a touch drag scrolls the page instead.
 
 ## Translations

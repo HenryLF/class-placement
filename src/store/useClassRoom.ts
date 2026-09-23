@@ -12,7 +12,45 @@ export interface Table {
   col: number;
 }
 
-export type BoardSide = "top" | "bottom";
+/**
+ * The whiteboard, in its own row above the grid: its left edge and width,
+ * in columns. Moved and resized in half-column steps.
+ */
+export interface Board {
+  col: number;
+  span: number;
+}
+
+export type BoardHandle = "move" | "left" | "right";
+
+const BOARD_STEP = 0.5;
+const snap = (n: number) => Math.round(n / BOARD_STEP) * BOARD_STEP;
+
+/** Centered, about 60% of the room's width. */
+export function defaultBoard(cols: number): Board {
+  const margin = Math.round(cols * 0.2);
+  return { col: margin, span: cols - 2 * margin };
+}
+
+/** Snapped to half columns, at least one column wide, inside the grid. */
+export function fitBoard({ col, span }: Board, cols: number): Board {
+  const width = Math.min(cols, Math.max(1, snap(span)));
+  return { col: Math.min(cols - width, Math.max(0, snap(col))), span: width };
+}
+
+/**
+ * The board after dragging `handle` by `delta` columns: "move" slides it,
+ * "left" and "right" move that edge while the other one stays put.
+ */
+export function dragBoard(board: Board, handle: BoardHandle, delta: number, cols: number): Board {
+  const { col, span } = board;
+  if (handle === "move") return fitBoard({ col: col + delta, span }, cols);
+  if (handle === "right")
+    return { col, span: Math.min(cols - col, Math.max(1, snap(span + delta))) };
+  const right = col + span;
+  const left = Math.min(right - 1, Math.max(0, snap(col + delta)));
+  return { col: left, span: right - left };
+}
 
 export interface ClassProfile {
   id: string;
@@ -20,7 +58,7 @@ export interface ClassProfile {
   rows: number;
   cols: number;
   tables: Table[];
-  board: BoardSide;
+  board: Board;
 }
 
 export interface ClassRoomStore {
@@ -39,7 +77,7 @@ export interface ClassRoomAction {
   addRooms: (rooms: ClassProfile[]) => void;
   // Grid
   setSize: (rows: number, cols: number) => void;
-  setBoard: (side: BoardSide) => void;
+  setBoard: (board: Board) => void;
   // Tables
   addTable: (row: number, col: number) => void;
   moveTable: (id: string, row: number, col: number) => void;
@@ -48,7 +86,7 @@ export interface ClassRoomAction {
 }
 
 function createProfile(name = getT().profile.room.new): ClassProfile {
-  return { id: crypto.randomUUID(), name, rows: 9, cols: 9, tables: [], board: "top" };
+  return { id: crypto.randomUUID(), name, rows: 9, cols: 9, tables: [], board: defaultBoard(9) };
 }
 
 function inBounds(p: ClassProfile, row: number, col: number) {
@@ -104,14 +142,16 @@ export const useClassRoom = create<ClassRoomStore & ClassRoomAction>()(
             // Never shrink the grid below a placed table.
             const minRows = Math.max(MIN_SIZE, ...p.tables.map((t) => t.row + 1));
             const minCols = Math.max(MIN_SIZE, ...p.tables.map((t) => t.col + 1));
+            const newCols = clamp(cols, minCols, MAX_SIZE);
             return {
               ...p,
               rows: clamp(rows, minRows, MAX_SIZE),
-              cols: clamp(cols, minCols, MAX_SIZE),
+              cols: newCols,
+              board: fitBoard(p.board, newCols),
             };
           }),
 
-        setBoard: (board) => updateCurrent((p) => ({ ...p, board })),
+        setBoard: (board) => updateCurrent((p) => ({ ...p, board: fitBoard(board, p.cols) })),
 
         addTable: (row, col) =>
           updateCurrent((p) => {
@@ -146,13 +186,20 @@ export const useClassRoom = create<ClassRoomStore & ClassRoomAction>()(
     },
     {
       name: "class-placement",
-      version: 2,
+      version: 3,
       partialize: (s) => ({ profiles: s.profiles, currentId: s.currentId }),
       migrate: (persisted, version) => {
         const state = persisted as ClassRoomStore;
-        // v1 profiles had no whiteboard.
-        if (version < 2) {
-          for (const p of Object.values(state.profiles)) p.board ??= "top";
+        // v1 had no whiteboard (it went on top); v2 put it on the "top" or
+        // "bottom" side. It is now always on top: a room that had it at the
+        // bottom is flipped, so every table keeps its place facing it.
+        if (version < 3) {
+          for (const p of Object.values(state.profiles)) {
+            const side: unknown = p.board;
+            if (side === "bottom")
+              p.tables = p.tables.map((t) => ({ ...t, row: p.rows - 1 - t.row }));
+            p.board = defaultBoard(p.cols);
+          }
         }
         return state;
       },

@@ -52,6 +52,7 @@ const fr: Translations = {
   },
   classroom: {
     whiteboard: "Tableau",
+    resizeBoard: "Faites glisser pour redimensionner le tableau",
   },
   students: {
     copyName: (name) => `${name} - Copie`,
@@ -171,7 +172,7 @@ const fr: Translations = {
       ],
       front: [
         "Assoit les élèves le plus près possible du tableau, pour que les tables vides restent au fond.",
-        "La distance est mesurée jusqu'au milieu du tableau, donc le centre de l'avant se remplit en premier. Utile seulement s'il y a plus de tables que d'élèves.",
+        "La distance est mesurée jusqu'au point le plus proche du tableau, donc les tables de devant qui lui font face se remplissent en premier. Utile seulement s'il y a plus de tables que d'élèves.",
       ],
       frontRow: [
         "Rapproche du tableau les élèves qui doivent être devant. Cochez « Premier rang » dans la fiche d'un élève pour l'indiquer.",

@@ -2,6 +2,8 @@
 // separate JSON files. Placements aren't exported: each one ties a room to a
 // class, so it means nothing once either is imported on its own.
 import {
+  defaultBoard,
+  fitBoard,
   MAX_SIZE,
   MIN_SIZE,
   useClassRoom,
@@ -98,7 +100,11 @@ function toRoom(v: unknown): ClassProfile {
     cells.add(cell);
     tables.push({ id: crypto.randomUUID(), row, col });
   }
-  const board = v.board === "bottom" ? "bottom" : "top";
+  const b = v.board;
+  const board =
+    isObject(b) && Number.isFinite(b.col) && Number.isFinite(b.span)
+      ? fitBoard({ col: b.col as number, span: b.span as number }, cols)
+      : defaultBoard(cols);
   return { id: crypto.randomUUID(), name: str(v.name), rows, cols, tables, board };
 }
 

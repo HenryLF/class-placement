@@ -47,6 +47,7 @@ const en = {
   },
   classroom: {
     whiteboard: "Whiteboard",
+    resizeBoard: "Drag to resize the whiteboard",
   },
   students: {
     copyName: (name: string) => `${name} - Copy`,
@@ -178,7 +179,7 @@ const en = {
       ],
       front: [
         "Seats students as close to the whiteboard as possible, so the empty tables end up at the back.",
-        "Distance is measured to the middle of the whiteboard, so the front center fills first. Only useful when there are more tables than students.",
+        "Distance is measured to the nearest point of the whiteboard, so the front tables facing it fill first. Only useful when there are more tables than students.",
       ],
       frontRow: [
         'Brings the students who need to sit at the front closer to the whiteboard. Tick "Front row" in a student\'s card to mark them.',

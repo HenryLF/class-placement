@@ -1,6 +1,5 @@
 import { useDrag } from "../../utils/dnd";
 import TableShape from "../atoms/TableShape";
-import Whiteboard from "../atoms/Whiteboard";
 import s from "./DragPreview.module.css";
 
 // Follows the pointer while something is being dragged.
@@ -17,11 +16,7 @@ export default function DragPreview() {
       aria-hidden
       style={{ transform: `translate(${x}px, ${y}px) translate(-50%, -50%)` }}
     >
-      {payload.kind === "board" ? (
-        <Whiteboard className={s.board} />
-      ) : (
-        <TableShape className={s.table} />
-      )}
+      <TableShape className={s.table} />
     </div>
   );
 }

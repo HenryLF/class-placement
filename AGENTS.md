@@ -11,9 +11,10 @@ sit in a classroom. It runs entirely in the browser, with no backend.
 
 - **Room layouts** (Classroom tab and the white area): a grid of cells.
   A click on an empty cell adds a single-seat table; tables are dragged to
-  move or swap them, and onto the bin (shown in the room's corner only
-  during a table drag) to delete them. A whiteboard sits above or below the
-  grid.
+  move or swap them, and onto the bin (shown at the left end of the
+  whiteboard row only during a table drag) to delete them. The whiteboard
+  has its own row above the grid (a third of a cell's height); it is dragged
+  sideways and resized by its edges.
 - **Students** (Students tab): classes of students. Each student has a
   name, a gender, an optional score (1–5) and a list of students they must
   not sit with (incompatibilities).
@@ -86,7 +87,7 @@ src/
       ProfilePicker.tsx       Load / rename / new / copy / delete section
       InfoButton.tsx          ⓘ button opening an explanation in a Modal
     organisms/
-      ClassRoom.tsx           The room: grid cells, tables, whiteboard zones, violation arrows
+      ClassRoom.tsx           The room: whiteboard row, grid cells, tables, violation arrows
       Pannel.tsx              Collapsible side panel; renders the `tabs` it is given
       DragPreview.tsx         Item following the pointer during a drag
       StudentTable.tsx        Inline-editable student rows (🔍 details, 🗑 delete)
@@ -115,12 +116,18 @@ keys. Keep it.
 ### Room layouts ([useClassRoom.ts](src/store/useClassRoom.ts))
 
 ```ts
-ClassProfile { id, name, rows, cols, tables: { id, row, col }[], board: "top" | "bottom" }
+ClassProfile { id, name, rows, cols, tables: { id, row, col }[], board: { col, span } }
 ```
 
 - A table fills exactly one cell. At most one table per cell.
 - Moving a table onto another swaps them.
 - `setSize` never shrinks the grid past a placed table and clamps to 1–30.
+- The whiteboard is always above the grid. `board` is its left edge and
+  width in columns, in half-column steps (`fitBoard` snaps and keeps it
+  inside the grid; `dragBoard` computes a move or edge resize). Its drag is
+  plain pointer handling in `ClassRoom.tsx`, not `dnd.ts`: nothing is
+  dropped, and it's saved on release. v2 rooms with the board at the
+  bottom are flipped on migration, so tables keep facing it.
 - There is always at least one layout. Actions apply to the loaded one
   (`currentId`).
 
@@ -196,8 +203,8 @@ store            { options, placements, disabledTables: Record<key, tableId[]>, 
     out of `m`.
   - Plus, per student: `seatWeight × far(seat)`, where `seatWeight` is
     front's weight (every student) + frontRow's weight (front-row students
-    only). `far` is `boardDistances` (Euclidean, from the middle of the
-    whiteboard) divided by `max + 1`, so it stays below 1, the cost of
+    only). `far` is `boardDistances` (Euclidean, from the nearest point
+    of the whiteboard: 0 for first-row tables under it) divided by `max + 1`, so it stays below 1, the cost of
     being unplaced.
 - **Search**: simulated annealing over swaps, with extra "unplaced" slots
   when there are more students than tables. With no constraint enabled, it
@@ -213,7 +220,7 @@ store            { options, placements, disabledTables: Record<key, tableId[]>, 
 
 | Key | Store | Version |
 |---|---|---|
-| `class-placement` | useClassRoom | 2 |
+| `class-placement` | useClassRoom | 3 |
 | `class-placement-students` | useStudents | 3 |
 | `class-placement-placements` | usePlacements | 2 |
 | `class-placement-ui` | useUI | – |

@@ -1,6 +1,6 @@
 // Seating algorithm: puts a class's students on a room's tables. Pure: no
 // store or storage access, so it can be tested directly.
-import type { BoardSide, Table } from "../store/useClassRoom";
+import type { Board, Table } from "../store/useClassRoom";
 import type { Student } from "../store/useStudents";
 
 export const WEIGHTS = [1, 4, 16] as const;
@@ -43,21 +43,22 @@ export const DEFAULT_OPTIONS: PlacementOptions = {
 /** What the algorithm needs from a room layout (a ClassProfile fits). */
 export interface Room {
   tables: Table[];
-  rows: number;
-  cols: number;
-  board: BoardSide;
+  board: Board;
 }
 
 /**
- * Distance from each table to the middle of the whiteboard, in cells: 0 in
- * the first row facing its center, growing toward the back and the sides.
+ * Distance from each table to the nearest point of the whiteboard (above
+ * the grid), in cells: 0 in the first row facing it, growing toward the
+ * back and the sides.
  */
 export function boardDistances(room: Room): Map<string, number> {
-  const center = (room.cols - 1) / 2;
+  const { col, span } = room.board;
+  const middle = col + span / 2;
   return new Map(
     room.tables.map((t) => {
-      const rows = room.board === "top" ? t.row : room.rows - 1 - t.row;
-      return [t.id, Math.hypot(rows + 1, t.col - center) - 1];
+      // Sideways gap between the table's center and the board's closest edge.
+      const side = Math.max(0, Math.abs(t.col + 0.5 - middle) - span / 2);
+      return [t.id, Math.hypot(t.row + 1, side) - 1];
     }),
   );
 }
@@ -412,10 +413,9 @@ export function findViolations(
     const free = Math.min(
       ...room.tables.filter((t) => !front(t)).map((t) => dist.get(t.id)!),
     );
-    const toBoard: Step = room.board === "top" ? -1 : 1;
     for (const t of room.tables)
       if (front(t) && dist.get(t.id)! > free + 1e-9)
-        found.push({ kind: "frontRow", a: t.id, dr: toBoard, dc: 0 });
+        found.push({ kind: "frontRow", a: t.id, dr: -1, dc: 0 });
   }
   return found;
 }

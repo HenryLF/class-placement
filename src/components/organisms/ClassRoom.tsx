@@ -1,7 +1,10 @@
+import { useRef, useState } from "preact/hooks";
 import {
+  dragBoard,
   useClassRoom,
   useCurrentClass,
-  type BoardSide,
+  type Board,
+  type BoardHandle,
   type Table as TableData,
 } from "../../store/useClassRoom";
 import { usePlacements, useSeating } from "../../store/usePlacements";
@@ -53,15 +56,13 @@ export default function ClassRoom() {
 
   return (
     <div className={s.room}>
-      <BoardZone side="top" hasBoard={board === "top"} />
       <div
         className={s.container}
         style={{ "--n_cols": cols, "--n_rows": rows }}
       >
+        <BoardRow board={board} cols={cols} />
         {cells}
       </div>
-      <BoardZone side="bottom" hasBoard={board === "bottom"} />
-      <Trash />
     </div>
   );
 }
@@ -96,10 +97,8 @@ function Cell({
   const moveTable = useClassRoom((st) => st.moveTable);
   // Moved tables may land anywhere: on another table, they swap.
   const { dropProps, isOver } = useDropTarget(`cell:${row}:${col}`, {
-    accepts: (p) => p.kind === "table",
-    onDrop: (p) => {
-      if (p.kind === "table") moveTable(p.id, row, col);
-    },
+    accepts: () => true,
+    onDrop: (p) => moveTable(p.id, row, col),
   });
 
   // A click on an empty cell adds a table; a click on a table toggles it.
@@ -122,40 +121,83 @@ function Cell({
   );
 }
 
-// Strip above or below the grid that holds the whiteboard, or accepts it
-// as a drop target when it's on the other side.
-function BoardZone({ side, hasBoard }: { side: BoardSide; hasBoard: boolean }) {
+// First grid row, a third of a cell's height: the whiteboard, which is
+// dragged sideways and resized by its edges. It moves by half columns and
+// is saved on release. Not a dnd.ts drag: it isn't dropped anywhere.
+function BoardRow({ board, cols }: { board: Board; cols: number }) {
+  const t = useT();
   const setBoard = useClassRoom((st) => st.setBoard);
-  const drag = useDraggable({ kind: "board" });
-  const dragging = useIsDragging((p) => p.kind === "board");
-  const { dropProps, isOver } = useDropTarget(`board:${side}`, {
-    accepts: (p) => p.kind === "board" && !hasBoard,
-    onDrop: () => setBoard(side),
-  });
+  const rowRef = useRef<HTMLDivElement>(null);
+  // Position while dragging, before it's saved.
+  const [live, setLive] = useState<Board | null>(null);
+  const shown = live ?? board;
+
+  const grab = (handle: BoardHandle) => (down: PointerEvent) => {
+    if (down.button !== 0 || !rowRef.current) return;
+    // A handle is inside the board: don't also start a move.
+    down.stopPropagation();
+    const gap = parseFloat(getComputedStyle(rowRef.current.parentElement!).columnGap) || 0;
+    const colWidth = (rowRef.current.clientWidth + gap) / cols;
+    let next = board;
+
+    const move = (e: PointerEvent) => {
+      if (e.pointerId !== down.pointerId) return;
+      next = dragBoard(board, handle, (e.clientX - down.clientX) / colWidth, cols);
+      setLive(next);
+    };
+    const up = (e: PointerEvent) => {
+      if (e.pointerId !== down.pointerId) return;
+      finish();
+      if (next.col !== board.col || next.span !== board.span) setBoard(next);
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") finish();
+    };
+    const finish = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", finish);
+      window.removeEventListener("keydown", key);
+      setLive(null);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", finish);
+    window.addEventListener("keydown", key);
+  };
 
   return (
-    <div {...dropProps} className={`${s.boardZone} ${isOver ? s.over : ""}`}>
-      {hasBoard && (
-        <Whiteboard
-          {...drag}
-          className={`${f.draggable} ${s.board} ${dragging ? s.dragging : ""}`}
-        />
-      )}
+    <div ref={rowRef} className={s.boardRow}>
+      <Whiteboard
+        data-testid="whiteboard"
+        className={`${f.draggable} ${s.board} ${live ? s.moving : ""}`}
+        style={{ "--col": shown.col, "--span": shown.span }}
+        onPointerDown={grab("move")}
+      >
+        {(["left", "right"] as const).map((edge) => (
+          <span
+            key={edge}
+            data-testid={`board-${edge}`}
+            aria-label={t.classroom.resizeBoard}
+            className={`${s.handle} ${s[edge]}`}
+            onPointerDown={grab(edge)}
+          />
+        ))}
+      </Whiteboard>
+      <Trash />
     </div>
   );
 }
 
-// Bin in the room's bottom-left corner, shown only while a table is dragged.
-// It sits inside the bottom whiteboard strip, so it never hides a cell.
+// Bin at the left end of the whiteboard row, shown only while a table is
+// dragged. It may cover the board, never a cell.
 function Trash() {
   const t = useT();
   const removeTable = useClassRoom((st) => st.removeTable);
-  const dragging = useIsDragging((p) => p.kind === "table");
+  const dragging = useIsDragging(() => true);
   const { dropProps, isOver } = useDropTarget("trash", {
-    accepts: (p) => p.kind === "table",
-    onDrop: (p) => {
-      if (p.kind === "table") removeTable(p.id);
-    },
+    accepts: () => true,
+    onDrop: (p) => removeTable(p.id),
   });
   if (!dragging) return null;
 
@@ -186,9 +228,7 @@ function Table({
 }) {
   const t = useT();
   const drag = useDraggable({ kind: "table", id: table.id });
-  const dragging = useIsDragging(
-    (p) => p.kind === "table" && p.id === table.id,
-  );
+  const dragging = useIsDragging((p) => p.id === table.id);
 
   return (
     <TableShape

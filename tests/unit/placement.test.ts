@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { Table } from "../../src/store/useClassRoom";
+import { defaultBoard, type Board, type Table } from "../../src/store/useClassRoom";
 import type { Gender, Score, Student } from "../../src/store/useStudents";
 import {
   boardDistances,
@@ -20,14 +20,9 @@ function student(id: string, patch: Partial<Student> = {}): Student {
   return { id, name: id, gender: "other", score: null, frontRow: false, incompatible: [], ...patch };
 }
 
-/** A room just big enough for `tables`, whiteboard on top. */
-function roomOf(tables: Table[], board: Room["board"] = "top"): Room {
-  return {
-    tables,
-    rows: Math.max(1, ...tables.map((t) => t.row + 1)),
-    cols: Math.max(1, ...tables.map((t) => t.col + 1)),
-    board,
-  };
+/** `tables`, with the default whiteboard of a grid just wide enough. */
+function roomOf(tables: Table[], board?: Board): Room {
+  return { tables, board: board ?? defaultBoard(Math.max(1, ...tables.map((t) => t.col + 1))) };
 }
 
 const OFF = { enabled: false, weight: 1 } as const;
@@ -306,20 +301,26 @@ describe("whiteboard distance", () => {
     return tables;
   };
 
-  test("is 0 facing the board's middle and grows to the back and sides", () => {
+  test("is 0 facing the board and grows to the back and sides", () => {
     const d = boardDistances(roomOf(grid(3, 3)));
     expect(d.get("t01")).toBe(0);
-    expect(d.get("t00")).toBeCloseTo(Math.SQRT2 - 1);
+    // The default board of a 3-wide room covers the middle column.
+    expect(d.get("t00")).toBeCloseTo(Math.hypot(1, 0.5) - 1);
     expect(d.get("t00")).toBe(d.get("t02")!);
     expect(d.get("t11")).toBe(1);
     expect(d.get("t21")).toBe(2);
     expect(d.get("t00")!).toBeLessThan(d.get("t11")!);
   });
 
-  test("is measured from the bottom when the board is there", () => {
-    const d = boardDistances(roomOf(grid(3, 3), "bottom"));
-    expect(d.get("t21")).toBe(0);
-    expect(d.get("t01")).toBe(2);
+  test("is measured to the board's nearest point", () => {
+    // A board over columns 0 to 2 of a 4-wide row.
+    const d = boardDistances(roomOf(grid(2, 4), { col: 0, span: 2 }));
+    expect(d.get("t00")).toBe(0);
+    expect(d.get("t01")).toBe(0);
+    expect(d.get("t10")).toBe(1);
+    // Column 2's center is half a column past the board's right edge.
+    expect(d.get("t02")).toBeCloseTo(Math.hypot(1, 0.5) - 1);
+    expect(d.get("t03")).toBeCloseTo(Math.hypot(1, 1.5) - 1);
   });
 
   const front = only({ front: { enabled: true, weight: 1 } });
@@ -335,8 +336,9 @@ describe("whiteboard distance", () => {
   });
 
   test("a single student goes to the front too", () => {
-    const { seats } = place(roomOf(grid(3, 3), "bottom"), [student("a")], front, seededRandom(3));
-    expect(seats).toEqual({ t21: "a" });
+    // Board moved over the right-hand column.
+    const { seats } = place(roomOf(grid(3, 3), { col: 2, span: 1 }), [student("a")], front, seededRandom(3));
+    expect(seats).toEqual({ t02: "a" });
   });
 
   const frontRow = only({ frontRow: { enabled: true, weight: 1 } });
@@ -376,9 +378,10 @@ describe("whiteboard distance", () => {
     expect(findViolations(roomOf(column), group, { t10: "b" }, frontRow)).toHaveLength(1);
     // Behind another front-row student only: fine.
     expect(findViolations(roomOf(column), group, { t00: "c", t10: "b", t20: "a" }, frontRow)).toEqual([]);
-    // Board at the bottom: the arrow points down.
-    const bottom = findViolations(roomOf(column, "bottom"), group, { t00: "b", t20: "a" }, frontRow);
-    expect(bottom).toEqual([{ kind: "frontRow", a: "t00", dr: 1, dc: 0 }]);
+    // Next to the board rather than facing it: the table facing it is closer.
+    const side = [table(0, 0), table(0, 1)];
+    const moved = findViolations(roomOf(side, { col: 1, span: 1 }), group, { t00: "b" }, frontRow);
+    expect(moved).toEqual([{ kind: "frontRow", a: "t00", dr: -1, dc: 0 }]);
     // Off: nothing.
     expect(findViolations(roomOf(column), group, { t10: "b" }, only({}))).toEqual([]);
   });

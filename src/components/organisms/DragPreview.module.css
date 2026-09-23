@@ -11,8 +11,3 @@
   width: 64px;
   box-shadow: var(--shadow);
 }
-
-.board {
-  padding: 12px 32px;
-  box-shadow: var(--shadow);
-}
