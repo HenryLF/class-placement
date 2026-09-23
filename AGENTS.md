@@ -68,10 +68,11 @@ src/
   store/profiles.ts           removeProfile(), shared by both stores' deleteClass
   store/usePlacements.ts      Placement options, seatings, switched-off tables (persisted, v2); useSeating()
   store/useUI.ts              Panel open/closed, color theme (persisted); sets <html data-theme>
-  store/backup.ts             Export / import of every localStorage key as one JSON file
+  store/backup.ts             Export / import of rooms, and of classes + students, as separate JSON files
   utils/dnd.ts                Pointer-events drag and drop
   utils/placement.ts          Seating algorithm (pure): place(), findViolations(), cost model
   utils/ids.ts                shortId() for display
+  utils/names.ts              byName: the alphabetical order of every list
   components/                 Atomic design, see Conventions > Components
     atoms/
       GenderSelect.tsx        Gender <select> (`short` = one-letter labels)
@@ -145,8 +146,11 @@ These are deliberate design decisions. Don't reverse them without asking:
 - **Score** is `1..5 | null`. Always pass values through `toScore()`.
   `updateStudent` rejects invalid scores and genders.
 - **Copying a class** (`duplicateClass`) shares students, never clones them.
-- **The list keeps class order, not name order.** Sorting would move a row
-  while its name is being typed.
+- **Everything listed by name is sorted with `byName`**
+  ([names.ts](src/utils/names.ts)): case- and accent-insensitive, numbers
+  as numbers. The student list (`StudentTable`) holds its order while the
+  pointer is over it or focus is in it, so a row never moves while its name
+  is typed or under a click; it re-sorts when the user moves away.
 - **Store helpers:** `updateCurrentClass()` applies a change to the loaded
   class; `removeProfile()` ([profiles.ts](src/store/profiles.ts)) is the
   "delete, but always keep one loaded" rule for both stores.
@@ -216,16 +220,23 @@ store            { options, placements, disabledTables: Record<key, tableId[]>, 
 | `class-placement-lang` | useI18n | – |
 
 When you change a persisted shape, bump `version`, handle the old shape in
-`migrate`, and add a unit test that loads old data. A new persisted store
-also goes in `STORAGE_KEYS` and `STORES` in
-[backup.ts](src/store/backup.ts), or export/import will miss it.
+`migrate`, and add a unit test that loads old data. Imported files go
+through the same `migrate`, but a new field also needs handling in
+`toRoom` / `toClasses` in [backup.ts](src/store/backup.ts), which rebuild
+every record field by field.
 
-**Import** (`restoreBackup`) replaces everything: it resets every store
-(which writes its defaults), then writes the file's keys and removes the
-others, then rehydrates. That way old exports go through `migrate`. It
-rejects any file whose loaded room or class is missing, because the app
-can't start without them (`parseBackup`). localStorage was chosen
-over IndexedDB on purpose: the data is small, and synchronous hydration
+**Export / import** ([backup.ts](src/store/backup.ts)) works on rooms and
+on classes separately: `createExport("rooms" | "classes")` writes that
+store's slice with its persist `version`. Placements, settings and the
+loaded ids aren't exported: a placement ties one room to one class, so it
+means nothing once either travels alone. **Import adds, never replaces**:
+`parseImport` migrates, validates and repairs the file (no orphans,
+symmetric incompatibilities), giving every room, table, class and student a
+fresh id, and `applyImport` adds them through `addRooms` / `addClasses`,
+which load the first one. It also reads the all-in-one exports of older
+versions (format 1), keeping only their rooms and classes.
+
+localStorage was chosen over IndexedDB on purpose: the data is small, and synchronous hydration
 means no loading states. Switching later is a `storage:` option change,
 explained in the README.
 
@@ -287,6 +298,9 @@ Every change adds or updates tests. Don't leave throwaway scripts outside
   descendant selectors. Section rules use `> h2` for this reason.
 - **Controlled `<input type="number">`** loses a typed decimal point. That's
   why scores use a `<select>`.
+- **`onChange` on a text input fires on every keystroke**, like `onInput`:
+  zustand loads `preact/compat`, which rewrites it. To act when editing ends
+  (e.g. trimming), use `onBlur`.
 
 ## Roadmap
 

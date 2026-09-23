@@ -1,5 +1,6 @@
 import { useT } from "../../i18n";
 import ui from "../../style/ui.module.css";
+import { byName } from "../../utils/names";
 
 interface Profile {
   id: string;
@@ -34,9 +35,7 @@ export default function ProfilePicker({
 }) {
   const t = useT();
   const current = profiles[currentId];
-  const sorted = Object.values(profiles).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
+  const sorted = Object.values(profiles).sort(byName);
 
   return (
     <section className={ui.section}>

@@ -1,11 +1,12 @@
 import { useRef, useState } from "preact/hooks";
-import { getT, useI18n, useT } from "../../i18n";
+import { useT } from "../../i18n";
 import {
-  BackupParseError,
-  backupFileName,
-  createBackup,
-  parseBackup,
-  restoreBackup,
+  ImportParseError,
+  applyImport,
+  createExport,
+  exportFileName,
+  parseImport,
+  type ExportKind,
 } from "../../store/backup";
 import { THEMES, useUI, type Theme } from "../../store/useUI";
 import ui from "../../style/ui.module.css";
@@ -70,42 +71,41 @@ function download(text: string, name: string) {
 
 function BackupSection() {
   const t = useT();
-  const lang = useI18n((st) => st.lang);
   const file = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const exportKind = (kind: ExportKind) => {
+    const now = new Date();
+    download(JSON.stringify(createExport(kind, now), null, 2), exportFileName(kind, now));
+  };
+
   const importFile = async (f: File) => {
     try {
-      const text = await f.text();
-      const data = parseBackup(text);
-      const exported = (JSON.parse(text) as { exportedAt?: string }).exportedAt;
-      const date = exported ? new Date(exported).toLocaleString(lang) : f.name;
-      if (!confirm(t.options.importConfirm(date))) return;
-      restoreBackup(data);
-      // The language may have changed with the data.
-      setStatus({ ok: true, text: getT().options.imported });
+      const imported = parseImport(await f.text());
+      applyImport(imported);
+      const { rooms, classes } = imported;
+      const text = [
+        rooms.length > 0 && t.options.importedRooms(rooms.length),
+        classes.length > 0 && t.options.importedClasses(classes.length),
+      ];
+      setStatus({ ok: true, text: text.filter(Boolean).join(" ") });
     } catch (e) {
-      if (!(e instanceof BackupParseError)) throw e;
-      const errors = t.options.errors;
-      setStatus({
-        ok: false,
-        text: e.code === "broken" ? errors.broken(e.key ?? "") : errors[e.code],
-      });
+      if (!(e instanceof ImportParseError)) throw e;
+      setStatus({ ok: false, text: t.options.errors[e.code] });
     }
   };
 
   return (
     <section className={ui.section}>
       <h2>{t.options.backupHeading}</h2>
-      <button
-        data-testid="export"
-        onClick={() => {
-          const now = new Date();
-          download(JSON.stringify(createBackup(localStorage, now), null, 2), backupFileName(now));
-        }}
-      >
-        {t.options.export}
-      </button>
+      <div className={ui.row}>
+        <button data-testid="export-rooms" onClick={() => exportKind("rooms")}>
+          {t.options.exportRooms}
+        </button>
+        <button data-testid="export-classes" onClick={() => exportKind("classes")}>
+          {t.options.exportClasses}
+        </button>
+      </div>
       <p className={ui.hint}>{t.options.exportHint}</p>
       <button data-testid="import" onClick={() => file.current?.click()}>
         {t.options.import}

@@ -35,6 +35,8 @@ export interface ClassRoomAction {
   loadClass: (id: string) => void;
   renameClass: (name: string) => void;
   deleteClass: (id: string) => void;
+  // Adds layouts (with ids unused so far) and loads the first.
+  addRooms: (rooms: ClassProfile[]) => void;
   // Grid
   setSize: (rows: number, cols: number) => void;
   setBoard: (side: BoardSide) => void;
@@ -89,6 +91,13 @@ export const useClassRoom = create<ClassRoomStore & ClassRoomAction>()(
 
         deleteClass: (id) =>
           set((s) => removeProfile(s.profiles, id, s.currentId, createProfile)),
+
+        addRooms: (rooms) => {
+          if (!rooms[0]) return;
+          const profiles = { ...get().profiles };
+          for (const room of rooms) profiles[room.id] = room;
+          set({ profiles, currentId: rooms[0].id });
+        },
 
         setSize: (rows, cols) =>
           updateCurrent((p) => {

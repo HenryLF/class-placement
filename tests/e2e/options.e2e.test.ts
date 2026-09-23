@@ -3,6 +3,7 @@ import { mkdirSync, readdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Browser, ElementHandle, Page } from "puppeteer-core";
 import type { ClassProfile } from "../../src/store/useClassRoom";
+import type { StudentsStore } from "../../src/store/useStudents";
 import { launch, openApp, screenshot, stored } from "./browser";
 import { startServer, type TestServer } from "./server";
 
@@ -43,13 +44,13 @@ async function renameRoom(name: string) {
   await page.click("[data-testid='tab-options']");
 }
 
-/** Clicks Export and returns the downloaded file's name and parsed content. */
-async function exportFile() {
+/** Clicks an export button and returns the downloaded file's name and parsed content. */
+async function exportFile(kind: "rooms" | "classes") {
   rmSync(DOWNLOADS, { recursive: true, force: true });
   mkdirSync(DOWNLOADS, { recursive: true });
   const cdp = await browser.target().createCDPSession();
   await cdp.send("Browser.setDownloadBehavior", { behavior: "allow", downloadPath: DOWNLOADS });
-  await page.click("[data-testid='export']");
+  await page.click(`[data-testid='export-${kind}']`);
   for (let i = 0; i < 50; i++) {
     const done = readdirSync(DOWNLOADS).filter((f) => f.endsWith(".json"));
     if (done[0]) {
@@ -84,7 +85,7 @@ test("the About section, last in the tab, says the data stays in the browser", a
   expect(last).toBe("about");
   const text = await page.$eval("[data-testid='about']", (s) => s.textContent);
   expect(text).toContain("No data is collected");
-  expect(text).toContain("Export as JSON");
+  expect(text).toContain("Import from JSON");
   await page.select("[data-testid='language']", "fr");
   expect(await page.$eval("[data-testid='about'] h2", (h) => h.textContent)).toBe("À propos");
 });
@@ -138,38 +139,57 @@ test("each theme changes the room, table and panel colors, and is remembered", a
   expect((await stored<{ theme: string }>(page, "class-placement-ui")).theme).toBe("chalk");
 });
 
-test("export downloads every store as JSON", async () => {
+const roomNames = async () => {
+  const s = await stored<{ profiles: Record<string, ClassProfile> }>(page, "class-placement");
+  return Object.values(s.profiles).map((p) => p.name).sort();
+};
+const classNames = async () => {
+  const s = await stored<StudentsStore>(page, "class-placement-students");
+  return Object.values(s.classes).map((c) => c.name).sort();
+};
+
+test("rooms and classes export to separate files, without placements", async () => {
   await renameRoom("Room 12");
-  await page.select("[data-testid='theme']", "light");
-  const { name, json } = await exportFile();
-  expect(name).toMatch(/^class-placement-\d{4}-\d{2}-\d{2}\.json$/);
-  expect(json.app).toBe("class-placement");
-  const room = json.data["class-placement"].state;
-  expect(room.profiles[room.currentId].name).toBe("Room 12");
-  expect(json.data["class-placement-ui"].state.theme).toBe("light");
+  await page.click("[data-testid='tab-options']");
+  await screenshot(page, "backup-section");
+
+  const rooms = await exportFile("rooms");
+  expect(rooms!.name).toMatch(/^class-placement-rooms-\d{4}-\d{2}-\d{2}\.json$/);
+  expect(rooms!.json).toMatchObject({ app: "class-placement", kind: "rooms" });
+  expect(Object.values(rooms!.json.state.profiles).map((p) => (p as ClassProfile).name)).toEqual([
+    "Room 12",
+  ]);
+
+  const classes = await exportFile("classes");
+  expect(classes!.name).toMatch(/^class-placement-classes-/);
+  expect(Object.keys(classes!.json.state).sort()).toEqual(["classes", "students"]);
 });
 
-test("import restores an export, replacing the current data", async () => {
+test("importing adds the file's rooms or classes next to the existing ones", async () => {
   await renameRoom("Room 12");
-  await page.select("[data-testid='theme']", "chalk");
-  const { path } = await exportFile();
-
-  // Start over, then change things the import must undo.
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  await page.waitForSelector("aside");
+  const rooms = await exportFile("rooms");
+  const classes = await exportFile("classes");
+  // Keep copies: the next export clears the downloads folder.
+  const roomsPath = resolve(DOWNLOADS, "../rooms.json");
+  const classesPath = resolve(DOWNLOADS, "../classes.json");
+  await Bun.write(roomsPath, JSON.stringify(rooms!.json));
+  await Bun.write(classesPath, JSON.stringify(classes!.json));
   await renameRoom("Scratch");
-  expect(await roomName()).toBe("Scratch");
 
-  expect(await importFile(path)).toBe("Data imported.");
+  expect(await importFile(roomsPath)).toBe("1 classroom added.");
+  expect(await roomNames()).toEqual(["Room 12", "Scratch"]);
+  // The imported room is loaded.
   expect(await roomName()).toBe("Room 12");
-  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("chalk");
+
+  expect(await importFile(classesPath)).toBe("1 class added.");
+  expect(await classNames()).toEqual(["My class", "My class"]);
+  expect(await roomNames()).toEqual(["Room 12", "Scratch"]);
   await screenshot(page, "import-done");
 
   // Still there after a reload.
   await page.reload();
   await page.waitForSelector("aside");
-  expect(await roomName()).toBe("Room 12");
+  expect(await roomNames()).toEqual(["Room 12", "Scratch"]);
 });
 
 test("a file that isn't an export is refused, and nothing changes", async () => {
@@ -182,9 +202,7 @@ test("a file that isn't an export is refused, and nothing changes", async () => 
 
   const broken = `${DOWNLOADS}/broken.json`;
   await Bun.write(broken, JSON.stringify({ app: "class-placement", data: { "class-placement": { state: {} } } }));
-  expect(await importFile(broken)).toBe(
-    'The file\'s "class-placement" data is damaged. Nothing was imported.',
-  );
+  expect(await importFile(broken)).toBe("This file's data is damaged. Nothing was imported.");
   expect(await roomName()).toBe("Keep me");
 });
 

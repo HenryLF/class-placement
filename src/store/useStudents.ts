@@ -2,6 +2,7 @@ import { useMemo } from "preact/hooks";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getT } from "../i18n";
+import { byName } from "../utils/names";
 import { removeProfile } from "./profiles";
 
 export const GENDERS = ["female", "male", "other"] as const;
@@ -47,6 +48,8 @@ export interface StudentsAction {
   renameClass: (name: string) => void;
   deleteClass: (id: string) => void;
   duplicateClass: (id: string) => void;
+  // Adds classes and their students (ids unused so far) and loads the first.
+  addClasses: (classes: StudentClass[], students: Student[]) => void;
   // Students
   saveStudent: (student: Student) => void;
   updateStudent: (
@@ -107,9 +110,7 @@ export function parseNames(text: string) {
  */
 export function classesByStudent(classes: Record<string, StudentClass>) {
   const index = new Map<string, StudentClass[]>();
-  const sorted = Object.values(classes).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
+  const sorted = Object.values(classes).sort(byName);
   for (const cls of sorted)
     for (const id of cls.studentIds) {
       const list = index.get(id);
@@ -224,6 +225,16 @@ export const useStudents = create<StudentsStore & StudentsAction>()(
           currentClassId: copy.id,
         }));
       },
+
+      addClasses: (added, addedStudents) =>
+        set((s) => {
+          if (!added[0]) return s;
+          const classes = { ...s.classes };
+          for (const cls of added) classes[cls.id] = cls;
+          const students = { ...s.students };
+          for (const st of addedStudents) students[st.id] = st;
+          return { classes, students, currentClassId: added[0].id };
+        }),
 
       saveStudent: (student) =>
         set((s) => {

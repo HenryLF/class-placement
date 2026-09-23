@@ -118,26 +118,25 @@ const en = {
     theme: "Color theme",
     themes: { indigo: "Indigo (default)", light: "Light", chalk: "Chalkboard" },
     backupHeading: "Import / export",
-    export: "Export as JSON",
+    exportRooms: "Export classrooms",
+    exportClasses: "Export classes",
     exportHint:
-      "Downloads every room, class, student, placement and setting in one file.",
+      "Downloads every classroom, or every class with its students, as a JSON file. Placements aren't exported: each depends on both a classroom and a class.",
     import: "Import from JSON…",
-    importHint: "Replaces all current data with the file's.",
-    importConfirm: (date: string) =>
-      `Replace all current data with the export from ${date}? This can't be undone.`,
-    imported: "Data imported.",
+    importHint: "Adds the file's classrooms or classes next to yours. Nothing is replaced.",
+    importedRooms: (n: number) => `${n} ${n === 1 ? "classroom" : "classrooms"} added.`,
+    importedClasses: (n: number) => `${n} ${n === 1 ? "class" : "classes"} added.`,
     aboutHeading: "About",
     about: [
       "Class Placement runs entirely in your browser. No data is collected or sent anywhere: there is no server, no account and no tracking.",
       "Your rooms, classes and students are saved in this browser, on this device only. Clearing the browser's data for this site deletes them.",
-      'To keep a backup, or to move your data to another device or browser, use "Export as JSON" above, then "Import from JSON" on the other side.',
+      "To keep a backup, or to move your data to another device or browser, use the exports above, then \"Import from JSON\" on the other side.",
     ],
     errors: {
       invalid: "This file isn't valid JSON.",
       notBackup: "This file isn't a Class Placement export.",
-      empty: "This file has no data to import.",
-      broken: (key: string) =>
-        `The file's "${key}" data is damaged. Nothing was imported.`,
+      empty: "This file has no classrooms or classes to import.",
+      broken: "This file's data is damaged. Nothing was imported.",
     },
   },
   placement: {

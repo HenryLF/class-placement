@@ -1,113 +1,203 @@
-// Export and import of everything the app keeps in localStorage, as one
-// JSON file.
-import { useI18n } from "../i18n";
-import { useClassRoom } from "./useClassRoom";
-import { usePlacements } from "./usePlacements";
-import { useStudents } from "./useStudents";
-import { useUI } from "./useUI";
+// Export and import of room layouts, and of classes with their students, as
+// separate JSON files. Placements aren't exported: each one ties a room to a
+// class, so it means nothing once either is imported on its own.
+import {
+  MAX_SIZE,
+  MIN_SIZE,
+  useClassRoom,
+  type ClassProfile,
+  type Table,
+} from "./useClassRoom";
+import {
+  GENDERS,
+  orphans,
+  purge,
+  repairIncompatibilities,
+  toScore,
+  useStudents,
+  type Student,
+  type StudentClass,
+} from "./useStudents";
 
-export const STORAGE_KEYS = [
-  "class-placement",
-  "class-placement-students",
-  "class-placement-placements",
-  "class-placement-ui",
-  "class-placement-lang",
-] as const;
-export type StorageKey = (typeof STORAGE_KEYS)[number];
+export type ExportKind = "rooms" | "classes";
 
-// Each key's persisted JSON ({ state, version }), parsed.
-export type BackupData = Partial<Record<StorageKey, unknown>>;
-
-export interface Backup {
+export interface ExportFile {
   app: "class-placement";
-  format: 1;
+  format: 2;
+  kind: ExportKind;
   exportedAt: string;
-  data: BackupData;
+  // The store's persist version, so old files go through its `migrate`.
+  version: number;
+  state: unknown;
 }
 
-export function createBackup(storage: Storage = localStorage, now = new Date()): Backup {
-  const data: BackupData = {};
-  for (const key of STORAGE_KEYS) {
-    const raw = storage.getItem(key);
-    if (raw !== null) data[key] = JSON.parse(raw);
-  }
-  return { app: "class-placement", format: 1, exportedAt: now.toISOString(), data };
+// Format 1 exported every localStorage key; these two hold rooms and classes.
+const LEGACY_KEYS: Record<string, ExportKind> = {
+  "class-placement": "rooms",
+  "class-placement-students": "classes",
+};
+
+const persistOf = (kind: ExportKind) =>
+  (kind === "rooms" ? useClassRoom : useStudents).persist.getOptions();
+
+export function createExport(kind: ExportKind, now = new Date()): ExportFile {
+  const state =
+    kind === "rooms"
+      ? { profiles: useClassRoom.getState().profiles }
+      : { students: useStudents.getState().students, classes: useStudents.getState().classes };
+  return {
+    app: "class-placement",
+    format: 2,
+    kind,
+    exportedAt: now.toISOString(),
+    version: persistOf(kind).version ?? 0,
+    state,
+  };
 }
 
-/** File name for a backup, e.g. "class-placement-2026-09-23.json". */
-export const backupFileName = (now = new Date()) =>
-  `class-placement-${now.toISOString().slice(0, 10)}.json`;
+/** File name for an export, e.g. "class-placement-rooms-2026-09-23.json". */
+export const exportFileName = (kind: ExportKind, now = new Date()) =>
+  `class-placement-${kind}-${now.toISOString().slice(0, 10)}.json`;
 
-export type BackupError = "invalid" | "notBackup" | "empty" | "broken";
+export type ImportError = "invalid" | "notBackup" | "empty" | "broken";
 
-export class BackupParseError extends Error {
-  constructor(
-    readonly code: BackupError,
-    readonly key?: StorageKey,
-  ) {
-    super(key ? `${code}: ${key}` : code);
+export class ImportParseError extends Error {
+  constructor(readonly code: ImportError) {
+    super(code);
   }
+}
+
+/** What a file adds, with fresh ids so it never clashes with existing data. */
+export interface Imported {
+  rooms: ClassProfile[];
+  classes: StudentClass[];
+  students: Student[];
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
-// The loaded profile must exist, or the app has nothing to show.
-function checkState(key: StorageKey, state: Record<string, unknown>) {
-  if (key === "class-placement")
-    return isObject(state.profiles) && typeof state.currentId === "string" &&
-      isObject(state.profiles[state.currentId]);
-  if (key === "class-placement-students")
-    return isObject(state.students) && isObject(state.classes) &&
-      typeof state.currentClassId === "string" && isObject(state.classes[state.currentClassId]);
-  return true;
+const str = (v: unknown) => (typeof v === "string" ? v : "");
+
+const isSize = (v: unknown): v is number =>
+  Number.isInteger(v) && (v as number) >= MIN_SIZE && (v as number) <= MAX_SIZE;
+
+function toRoom(v: unknown): ClassProfile {
+  if (!isObject(v) || !Array.isArray(v.tables) || !isSize(v.rows) || !isSize(v.cols))
+    throw new ImportParseError("broken");
+  const { rows, cols } = v;
+  // Out-of-grid and stacked tables are dropped.
+  const cells = new Set<string>();
+  const tables: Table[] = [];
+  for (const t of v.tables) {
+    if (!isObject(t) || !Number.isInteger(t.row) || !Number.isInteger(t.col)) continue;
+    const row = t.row as number;
+    const col = t.col as number;
+    const cell = `${row}:${col}`;
+    if (row < 0 || col < 0 || row >= rows || col >= cols || cells.has(cell)) continue;
+    cells.add(cell);
+    tables.push({ id: crypto.randomUUID(), row, col });
+  }
+  const board = v.board === "bottom" ? "bottom" : "top";
+  return { id: crypto.randomUUID(), name: str(v.name), rows, cols, tables, board };
+}
+
+function toRooms(state: Record<string, unknown>) {
+  if (!isObject(state.profiles)) throw new ImportParseError("broken");
+  return Object.values(state.profiles).map(toRoom);
+}
+
+function toClasses(state: Record<string, unknown>) {
+  if (!isObject(state.students) || !isObject(state.classes))
+    throw new ImportParseError("broken");
+  const raw = Object.values(state.students);
+  const newId = new Map<string, string>();
+  for (const st of raw) {
+    if (!isObject(st) || typeof st.id !== "string") throw new ImportParseError("broken");
+    newId.set(st.id, crypto.randomUUID());
+  }
+  const mapIds = (ids: unknown) =>
+    Array.isArray(ids)
+      ? [...new Set(ids.flatMap((id) => newId.get(id as string) ?? []))]
+      : [];
+
+  let students: Record<string, Student> = {};
+  for (const st of raw as Record<string, unknown>[]) {
+    const id = newId.get(st.id as string)!;
+    students[id] = {
+      id,
+      name: str(st.name),
+      gender: GENDERS.includes(st.gender as Student["gender"])
+        ? (st.gender as Student["gender"])
+        : "other",
+      score: toScore(st.score),
+      frontRow: st.frontRow === true,
+      incompatible: mapIds(st.incompatible),
+    };
+  }
+  const classes: Record<string, StudentClass> = {};
+  for (const cls of Object.values(state.classes)) {
+    if (!isObject(cls) || !Array.isArray(cls.studentIds)) throw new ImportParseError("broken");
+    const id = crypto.randomUUID();
+    classes[id] = { id, name: str(cls.name), studentIds: mapIds(cls.studentIds) };
+  }
+  // Same rules as the store: no orphans, symmetric incompatibilities.
+  students = repairIncompatibilities(purge(students, orphans(Object.keys(students), classes)));
+  return { classes: Object.values(classes), students: Object.values(students) };
+}
+
+// One store's slice, migrated to the current shape, then checked.
+function read(imported: Imported, kind: ExportKind, version: unknown, state: unknown) {
+  if (!isObject(state)) throw new ImportParseError("broken");
+  const migrate = persistOf(kind).migrate;
+  const current = persistOf(kind).version ?? 0;
+  const v = typeof version === "number" ? version : 0;
+  // Our migrations are synchronous and edit the state in place. They trust
+  // the shape, so a damaged file can make them throw.
+  if (migrate && v < current)
+    try {
+      void migrate(state, v);
+    } catch {
+      throw new ImportParseError("broken");
+    }
+  if (kind === "rooms") imported.rooms.push(...toRooms(state));
+  else Object.assign(imported, toClasses(state));
 }
 
 /**
- * The data of an exported file. Throws a BackupParseError when the text isn't
- * an export, or when a store's data is missing what the app needs to start.
- * Unknown keys are ignored.
+ * The rooms and classes in an exported file, ready to add. Also reads the
+ * all-in-one exports of older versions. Throws an ImportParseError when the
+ * text isn't an export or its data is damaged.
  */
-export function parseBackup(text: string): BackupData {
+export function parseImport(text: string): Imported {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new BackupParseError("invalid");
+    throw new ImportParseError("invalid");
   }
-  if (!isObject(parsed) || parsed.app !== "class-placement" || !isObject(parsed.data))
-    throw new BackupParseError("notBackup");
+  if (!isObject(parsed) || parsed.app !== "class-placement")
+    throw new ImportParseError("notBackup");
 
-  const data: BackupData = {};
-  for (const key of STORAGE_KEYS) {
-    const entry = parsed.data[key];
-    if (entry === undefined) continue;
-    if (!isObject(entry) || !isObject(entry.state) || !checkState(key, entry.state))
-      throw new BackupParseError("broken", key);
-    data[key] = entry;
-  }
-  if (Object.keys(data).length === 0) throw new BackupParseError("empty");
-  return data;
+  const imported: Imported = { rooms: [], classes: [], students: [] };
+  if (parsed.kind === "rooms" || parsed.kind === "classes")
+    read(imported, parsed.kind, parsed.version, parsed.state);
+  else if (isObject(parsed.data))
+    for (const [key, kind] of Object.entries(LEGACY_KEYS)) {
+      const entry = parsed.data[key];
+      if (entry === undefined) continue;
+      if (!isObject(entry)) throw new ImportParseError("broken");
+      read(imported, kind, entry.version, entry.state);
+    }
+  else throw new ImportParseError("notBackup");
+
+  if (imported.rooms.length === 0 && imported.classes.length === 0)
+    throw new ImportParseError("empty");
+  return imported;
 }
 
-const STORES = [useClassRoom, useStudents, usePlacements, useUI, useI18n] as const;
-
-/**
- * Replaces all stored data with `data` and reloads every store from it.
- * Keys missing from `data` go back to their defaults.
- */
-export function restoreBackup(data: BackupData) {
-  // Resetting a store writes its defaults to storage, so reset first, then
-  // write the imported data, then load it.
-  for (const store of STORES) {
-    // Each store's own type; the union can't be called directly.
-    const s = store as unknown as typeof useUI;
-    s.setState(s.getInitialState(), true);
-  }
-  for (const key of STORAGE_KEYS) {
-    const entry = data[key];
-    if (entry === undefined) localStorage.removeItem(key);
-    else localStorage.setItem(key, JSON.stringify(entry));
-  }
-  for (const store of STORES) void store.persist.rehydrate();
+/** Adds the imported rooms and classes next to the existing ones. */
+export function applyImport({ rooms, classes, students }: Imported) {
+  if (rooms.length > 0) useClassRoom.getState().addRooms(rooms);
+  if (classes.length > 0) useStudents.getState().addClasses(classes, students);
 }

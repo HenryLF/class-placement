@@ -120,24 +120,26 @@ const fr: Translations = {
     theme: "Thème de couleurs",
     themes: { indigo: "Indigo (par défaut)", light: "Clair", chalk: "Tableau noir" },
     backupHeading: "Import / export",
-    export: "Exporter en JSON",
-    exportHint: "Télécharge toutes les salles, classes, élèves, placements et réglages dans un seul fichier.",
+    exportRooms: "Exporter les salles de cours",
+    exportClasses: "Exporter les classes",
+    exportHint:
+      "Télécharge toutes les salles de cours, ou toutes les classes avec leurs élèves, dans un fichier JSON. Les placements ne sont pas exportés : chacun dépend à la fois d'une salle et d'une classe.",
     import: "Importer depuis un JSON…",
-    importHint: "Remplace toutes les données actuelles par celles du fichier.",
-    importConfirm: (date) =>
-      `Remplacer toutes les données actuelles par l'export du ${date} ? Cette action est irréversible.`,
-    imported: "Données importées.",
+    importHint: "Ajoute les salles de cours ou les classes du fichier à côté des vôtres. Rien n'est remplacé.",
+    importedRooms: (n) =>
+      n === 1 ? "1 salle de cours ajoutée." : `${n} salles de cours ajoutées.`,
+    importedClasses: (n) => (n === 1 ? "1 classe ajoutée." : `${n} classes ajoutées.`),
     aboutHeading: "À propos",
     about: [
       "Plan de classe fonctionne entièrement dans votre navigateur. Aucune donnée n'est collectée ni envoyée où que ce soit : pas de serveur, pas de compte, pas de pistage.",
       "Vos salles, classes et élèves sont enregistrés dans ce navigateur, sur cet appareil uniquement. Effacer les données de navigation de ce site les supprime.",
-      "Pour garder une sauvegarde, ou passer vos données sur un autre appareil ou navigateur, utilisez « Exporter en JSON » ci-dessus, puis « Importer depuis un JSON » de l'autre côté.",
+      "Pour garder une sauvegarde, ou passer vos données sur un autre appareil ou navigateur, utilisez les exports ci-dessus, puis « Importer depuis un JSON » de l'autre côté.",
     ],
     errors: {
       invalid: "Ce fichier n'est pas un JSON valide.",
       notBackup: "Ce fichier n'est pas un export de Plan de classe.",
-      empty: "Ce fichier ne contient aucune donnée à importer.",
-      broken: (key) => `Les données « ${key} » du fichier sont abîmées. Rien n'a été importé.`,
+      empty: "Ce fichier ne contient aucune salle de cours ni classe à importer.",
+      broken: "Les données de ce fichier sont abîmées. Rien n'a été importé.",
     },
   },
   placement: {

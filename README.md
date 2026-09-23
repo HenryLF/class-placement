@@ -74,7 +74,7 @@ assets are cached for a year, and `index.html` is always revalidated.
 - **Options** (⚙ tab):
   - **Language**: English (default) or French.
   - **Theme**: Indigo (default), Light or Chalkboard, which change the panel's, the room's and the tables' colors.
-  - **Import / export**: export downloads everything in one JSON file (rooms, classes, students, placements, settings). Import replaces all current data with such a file, after a confirmation. Files from older versions are migrated.
+  - **Import / export**: two exports, one with every classroom, one with every class and its students. Placements aren't exported, since each depends on both a classroom and a class. Import adds the file's classrooms or classes next to the existing ones and replaces nothing. Files from older versions, including the older all-in-one exports, are migrated.
   - **About**: no data is collected; everything stays in the browser, and JSON export / import is the way to back it up or move it.
 
 ## Project structure
@@ -121,7 +121,7 @@ src/
     profiles.ts           Profile helpers shared by both stores
     usePlacements.ts      Placement options and saved seatings (persisted)
     useUI.ts              UI preferences: panel open, theme (persisted)
-    backup.ts             Export / import of all stored data as JSON
+    backup.ts             Export / import of rooms, and of classes, as JSON
   i18n/
     en.ts                 English strings (reference shape)
     fr.ts                 French strings
@@ -130,6 +130,7 @@ src/
     dnd.ts                Pointer-based drag and drop
     placement.ts          Seating algorithm (pure functions)
     ids.ts                shortId() for displaying ids
+    names.ts              byName: alphabetical order for every list
 tests/
   setup.ts                happy-dom preload for unit tests
   helpers.ts              resetStores()
@@ -235,8 +236,8 @@ drop links to deleted students, in case stored data was edited by hand.
 - `saveStudent` on a student not yet in the loaded class adds them to it.
   `StudentCard` edits a draft and only calls `saveStudent` on Save; Cancel,
   Escape or a click on the backdrop discards every change.
-- The list shows students in class order, not sorted by name, so a row
-  doesn't move while its name is typed.
+- The list is sorted by name, but holds its order while the pointer is over
+  it or focus is in it, so a row doesn't move while its name is typed.
 - `duplicateClass` copies the id list, not the students.
 - `importStudents(names)` appends one new student per name to the loaded
   class, in order (use `parseNames(text)` to split pasted text). Duplicate

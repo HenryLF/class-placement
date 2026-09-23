@@ -9,6 +9,7 @@ import ui from "../../style/ui.module.css";
 import { shortId } from "../../utils/ids";
 import Modal, { ModalClose } from "../molecules/Modal";
 import s from "./StudentPicker.module.css";
+import { byName } from "../../utils/names";
 
 // Modal listing students from other classes, with their ID and classes,
 // to add them to the loaded class.
@@ -22,7 +23,7 @@ export default function StudentPicker({ onClose }: { onClose: () => void }) {
 
   const others = Object.values(students)
     .filter((st) => !cls.studentIds.includes(st.id))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort(byName);
   const query = filter.trim().toLowerCase();
   const shown = query
     ? others.filter(

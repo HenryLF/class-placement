@@ -49,7 +49,7 @@ async function addStudent(name: string, gender?: Gender, score?: number) {
     () => (document.activeElement as HTMLElement | null)?.dataset.testid === "student-name",
   );
   await page.keyboard.type(name);
-  await page.keyboard.press("Tab"); // commits the name (change event)
+  await page.keyboard.press("Tab"); // commits the name (trimmed on blur)
   const tr = await row(name);
   if (gender) await (await tr.$("[data-testid='student-gender']"))!.select(gender);
   if (score) await (await tr.$("[data-testid='student-score']"))!.select(String(score));
@@ -85,13 +85,33 @@ test("score options are none and 1 to 5", async () => {
   expect(options).toEqual(["", "1", "2", "3", "4", "5"]);
 });
 
-test("new students keep their place while their name is typed", async () => {
-  await addStudent("Zoe");
-  await addStudent("Adam");
-  const names = await page.$$eval("[data-testid='student-name']", (is) =>
+const listedNames = () =>
+  page.$$eval("[data-testid='student-name']", (is) =>
     is.map((i) => (i as HTMLInputElement).value),
   );
-  expect(names).toEqual(["Zoe", "Adam"]);
+
+test("students are sorted by name, but hold still while the list is in use", async () => {
+  await addStudent("Zoe");
+  await addStudent("adam");
+  await addStudent("Student 10");
+  await addStudent("Student 2");
+  // A new student has no name yet, so it appears first; focus stays in the
+  // table (Tab), so the row holds its place while the name is typed.
+  expect(await listedNames()).toEqual(["Student 2", "adam", "Student 10", "Zoe"]);
+
+  // Focus leaving the table sorts it: case-insensitive, numbers as numbers.
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+  expect(await listedNames()).toEqual(["adam", "Student 2", "Student 10", "Zoe"]);
+
+  // A renamed row doesn't move while hovered or focused.
+  const input = await (await row("adam"))!.$("[data-testid='student-name']");
+  await input!.click({ count: 3 });
+  await page.keyboard.type("Yann");
+  expect(await listedNames()).toEqual(["Yann", "Student 2", "Student 10", "Zoe"]);
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+  expect(await listedNames()).toEqual(["Yann", "Student 2", "Student 10", "Zoe"]);
+  await page.mouse.move(1, 1);
+  expect(await listedNames()).toEqual(["Student 2", "Student 10", "Yann", "Zoe"]);
 });
 
 test("🔍 opens the incompatibilities, saved on both students", async () => {
@@ -355,10 +375,7 @@ test("Add multiple imports one student per line into the class", async () => {
 
   await page.click("[data-testid='import-submit']");
   await dialogClosed();
-  const names = await page.$$eval("[data-testid='student-name']", (is) =>
-    is.map((i) => (i as HTMLInputElement).value),
-  );
-  expect(names).toEqual(["Zoe", "Alice Martin", "Bob Dupont", "Chloé"]);
+  expect(await listedNames()).toEqual(["Alice Martin", "Bob Dupont", "Chloé", "Zoe"]);
 });
 
 test("the import summary is singular for one student, and in French", async () => {

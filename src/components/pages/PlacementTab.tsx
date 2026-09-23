@@ -4,6 +4,7 @@ import { useCurrentClass } from "../../store/useClassRoom";
 import { usePlacements, useSeating } from "../../store/usePlacements";
 import { useCurrentStudentClass } from "../../store/useStudents";
 import ui from "../../style/ui.module.css";
+import { byName } from "../../utils/names";
 import InfoButton from "../molecules/InfoButton";
 import {
   DIAGONALS,
@@ -219,7 +220,7 @@ function PlaceSection() {
           {unplaced.length > 0 && (
             <p className={s.warning} data-testid="unplaced">
               {t.placement.unplaced(
-                unplaced.map((st) => st.name || t.common.unnamed).join(", "),
+                [...unplaced].sort(byName).map((st) => st.name || t.common.unnamed).join(", "),
               )}
             </p>
           )}

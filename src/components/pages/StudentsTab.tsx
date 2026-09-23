@@ -75,8 +75,6 @@ function StudentsSection({
   const [importing, setImporting] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
 
-  // Class order, not sorted by name: sorting would move a row while its
-  // name is being typed.
   const members = cls.studentIds
     .map((id) => students[id])
     .filter((st) => st !== undefined);

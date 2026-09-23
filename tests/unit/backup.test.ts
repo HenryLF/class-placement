@@ -1,151 +1,189 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { useI18n } from "../../src/i18n";
 import {
-  BackupParseError,
-  backupFileName,
-  createBackup,
-  parseBackup,
-  restoreBackup,
-  type BackupData,
+  ImportParseError,
+  applyImport,
+  createExport,
+  exportFileName,
+  parseImport,
 } from "../../src/store/backup";
 import { useClassRoom } from "../../src/store/useClassRoom";
-import { usePlacements } from "../../src/store/usePlacements";
+import { placementKey, usePlacements } from "../../src/store/usePlacements";
 import { useStudents } from "../../src/store/useStudents";
 import { useUI } from "../../src/store/useUI";
 import { resetStores } from "../helpers";
 
 beforeEach(resetStores);
 
-/** Some data in every store, persisted. */
+const rooms = () => useClassRoom.getState();
+const classes = () => useStudents.getState();
+const roomNames = () => Object.values(rooms().profiles).map((p) => p.name).sort();
+const classNames = () => Object.values(classes().classes).map((c) => c.name).sort();
+
+/** A room with a table, and a class of two incompatible students. */
 function fill() {
-  useClassRoom.getState().renameClass("Room A");
-  useClassRoom.getState().addTable(0, 0);
-  useStudents.getState().importStudents(["Alice", "Bob"]);
-  usePlacements.getState().setShowMarks(false);
-  useUI.getState().setTheme("chalk");
-  useI18n.getState().setLang("fr");
+  rooms().renameClass("Room A");
+  rooms().addTable(1, 2);
+  rooms().setBoard("bottom");
+  classes().renameClass("Class A");
+  classes().importStudents(["Alice", "Bob"]);
+  const [alice, bob] = Object.values(classes().students);
+  classes().saveStudent({ ...alice!, gender: "female", score: 4, frontRow: true, incompatible: [bob!.id] });
 }
 
 const errorOf = (text: string) => {
   try {
-    parseBackup(text);
+    parseImport(text);
   } catch (e) {
-    return e instanceof BackupParseError ? [e.code, e.key] : e;
+    return e instanceof ImportParseError ? e.code : e;
   }
   return null;
 };
 
-describe("createBackup", () => {
-  test("holds every stored key, parsed, with the date", () => {
+const roundTrip = (kind: "rooms" | "classes") => parseImport(JSON.stringify(createExport(kind)));
+
+describe("createExport", () => {
+  test("rooms: every layout, and nothing else", () => {
     fill();
-    const now = new Date("2026-09-23T10:00:00Z");
-    const backup = createBackup(localStorage, now);
-    expect(backup.app).toBe("class-placement");
-    expect(backup.exportedAt).toBe("2026-09-23T10:00:00.000Z");
-    expect(Object.keys(backup.data).sort()).toEqual([
-      "class-placement",
-      "class-placement-lang",
-      "class-placement-placements",
-      "class-placement-students",
-      "class-placement-ui",
-    ]);
-    expect(backup.data["class-placement-lang"]).toEqual(
-      JSON.parse(localStorage.getItem("class-placement-lang")!),
+    const file = createExport("rooms", new Date("2026-09-23T10:00:00Z"));
+    expect(file).toMatchObject({ app: "class-placement", kind: "rooms", version: 2 });
+    expect(file.exportedAt).toBe("2026-09-23T10:00:00.000Z");
+    expect(file.state).toEqual({ profiles: rooms().profiles });
+  });
+
+  test("classes: every class and student, and no placement", () => {
+    fill();
+    usePlacements.getState().setShowMarks(false);
+    const file = createExport("classes");
+    expect(file).toMatchObject({ kind: "classes", version: 3 });
+    expect(file.state).toEqual({ students: classes().students, classes: classes().classes });
+    expect(JSON.stringify(file)).not.toContain("seats");
+  });
+
+  test("names the file after the kind and the day", () => {
+    const day = new Date("2026-01-05T23:00:00Z");
+    expect(exportFileName("rooms", day)).toBe("class-placement-rooms-2026-01-05.json");
+    expect(exportFileName("classes", day)).toBe("class-placement-classes-2026-01-05.json");
+  });
+});
+
+describe("importing", () => {
+  test("rooms are added next to the existing ones, with new ids, and loaded", () => {
+    fill();
+    const before = rooms().profiles;
+    const imported = roundTrip("rooms");
+    applyImport(imported);
+    expect(roomNames()).toEqual(["Room A", "Room A"]);
+    const added = rooms().profiles[rooms().currentId]!;
+    expect(before[added.id]).toBeUndefined();
+    expect(added).toMatchObject({ name: "Room A", rows: 9, cols: 9, board: "bottom" });
+    expect(added.tables.map((t) => [t.row, t.col])).toEqual([[1, 2]]);
+    // Classes are untouched.
+    expect(classNames()).toEqual(["Class A"]);
+  });
+
+  test("classes come with their students, as new records, and keep incompatibilities", () => {
+    fill();
+    const before = classes().students;
+    applyImport(roundTrip("classes"));
+    expect(classNames()).toEqual(["Class A", "Class A"]);
+    const cls = classes().classes[classes().currentClassId]!;
+    const [alice, bob] = cls.studentIds.map((id) => classes().students[id]!);
+    expect(before[alice!.id]).toBeUndefined();
+    expect(alice).toMatchObject({ name: "Alice", gender: "female", score: 4, frontRow: true });
+    expect(alice!.incompatible).toEqual([bob!.id]);
+    expect(bob!.incompatible).toEqual([alice!.id]);
+    expect(Object.keys(classes().students)).toHaveLength(4);
+    expect(roomNames()).toEqual(["Room A"]);
+  });
+
+  test("a student shared by two classes stays shared", () => {
+    fill();
+    classes().duplicateClass(classes().currentClassId);
+    const { classes: added, students } = roundTrip("classes");
+    expect(students).toHaveLength(2);
+    expect(added[0]!.studentIds).toEqual(added[1]!.studentIds);
+  });
+
+  test("existing placements survive an import", () => {
+    fill();
+    const key = placementKey(rooms().currentId, classes().currentClassId);
+    const [student] = Object.keys(classes().students);
+    const [table] = rooms().profiles[rooms().currentId]!.tables;
+    usePlacements.getState().savePlacement({
+      roomId: rooms().currentId,
+      classId: classes().currentClassId,
+      seats: { [table!.id]: student! },
+    });
+    applyImport(roundTrip("rooms"));
+    applyImport(roundTrip("classes"));
+    expect(usePlacements.getState().placements[key]!.seats).toEqual({ [table!.id]: student! });
+  });
+
+  test("damaged fields are repaired, damaged structure is refused", () => {
+    const file = (state: unknown, kind = "classes", version = 3) =>
+      JSON.stringify({ app: "class-placement", format: 2, kind, version, state });
+    const { students, classes: added } = parseImport(
+      file({
+        students: {
+          a: { id: "a", name: "Ann", gender: "robot", score: 9, incompatible: ["a", "b", "gone"] },
+          b: { id: "b", name: "Ben", incompatible: [] },
+          lost: { id: "lost", name: "In no class" },
+        },
+        classes: { c: { name: "C", studentIds: ["a", "b", "b", "gone"] } },
+      }),
     );
-  });
-
-  test("leaves out keys that were never stored, and unrelated keys", () => {
-    // resetStores() leaves every store's defaults in storage.
-    localStorage.clear();
-    localStorage.setItem("other-app", "{}");
-    useUI.getState().setTheme("light");
-    expect(Object.keys(createBackup().data)).toEqual(["class-placement-ui"]);
-  });
-
-  test("names the file after the day", () => {
-    expect(backupFileName(new Date("2026-01-05T23:00:00Z"))).toBe("class-placement-2026-01-05.json");
-  });
-});
-
-describe("parseBackup", () => {
-  test("accepts its own export", () => {
-    fill();
-    const backup = createBackup();
-    expect(parseBackup(JSON.stringify(backup))).toEqual(backup.data);
-  });
-
-  test("rejects text that isn't JSON, or isn't an export", () => {
-    expect(errorOf("{nope")).toEqual(["invalid", undefined]);
-    expect(errorOf("[]")).toEqual(["notBackup", undefined]);
-    expect(errorOf(JSON.stringify({ app: "other", data: {} }))).toEqual(["notBackup", undefined]);
-    expect(errorOf(JSON.stringify({ app: "class-placement" }))).toEqual(["notBackup", undefined]);
-  });
-
-  test("rejects an export with nothing the app knows", () => {
-    const text = JSON.stringify({ app: "class-placement", data: { other: { state: {} } } });
-    expect(errorOf(text)).toEqual(["empty", undefined]);
-  });
-
-  test("rejects a store whose loaded profile is missing", () => {
-    const room = { state: { profiles: {}, currentId: "gone" }, version: 2 };
-    const text = JSON.stringify({ app: "class-placement", data: { "class-placement": room } });
-    expect(errorOf(text)).toEqual(["broken", "class-placement"]);
-    const students = { state: { students: {}, classes: { c: {} }, currentClassId: "x" } };
-    expect(
-      errorOf(JSON.stringify({ app: "class-placement", data: { "class-placement-students": students } })),
-    ).toEqual(["broken", "class-placement-students"]);
-    expect(
-      errorOf(JSON.stringify({ app: "class-placement", data: { "class-placement-ui": "dark" } })),
-    ).toEqual(["broken", "class-placement-ui"]);
-  });
-});
-
-describe("restoreBackup", () => {
-  test("brings back every store from an export", () => {
-    fill();
-    const data = parseBackup(JSON.stringify(createBackup()));
-    resetStores();
-    expect(useClassRoom.getState().profiles[useClassRoom.getState().currentId]!.name).toBe("My classroom");
-
-    restoreBackup(data);
-    const room = useClassRoom.getState();
-    expect(room.profiles[room.currentId]!.name).toBe("Room A");
-    expect(room.profiles[room.currentId]!.tables).toHaveLength(1);
-    expect(Object.values(useStudents.getState().students).map((s) => s.name).sort()).toEqual([
-      "Alice",
-      "Bob",
+    expect(added[0]!.studentIds).toHaveLength(2);
+    expect(students.map((s) => [s.name, s.gender, s.score, s.incompatible.length])).toEqual([
+      ["Ann", "other", null, 1],
+      ["Ben", "other", null, 1],
     ]);
-    expect(usePlacements.getState().showMarks).toBe(false);
-    expect(useUI.getState().theme).toBe("chalk");
-    expect(useI18n.getState().lang).toBe("fr");
-    // And storage holds the imported data.
-    expect(JSON.parse(localStorage.getItem("class-placement-ui")!).state.theme).toBe("chalk");
+
+    const [room] = parseImport(
+      file({ profiles: { r: { rows: 2, cols: 2, tables: [{ row: 0, col: 0 }, { row: 0, col: 0 }, { row: 5, col: 0 }] } } }, "rooms", 2),
+    ).rooms;
+    expect(room!.tables).toHaveLength(1);
+
+    expect(errorOf(file({ profiles: { r: { rows: 0, cols: 2, tables: [] } } }, "rooms", 2))).toBe("broken");
+    expect(errorOf(file({ students: { a: "Ann" }, classes: {} }))).toBe("broken");
+    expect(errorOf(file({ students: {}, classes: { c: { name: "C" } } }))).toBe("broken");
+    expect(errorOf(file({ profiles: { r: null } }, "rooms", 1))).toBe("broken");
   });
 
-  test("stores missing from the file go back to their defaults", () => {
+  test("old data in a file is migrated", () => {
+    const old = { profiles: { r: { id: "r", name: "Old", rows: 2, cols: 2, tables: [] } } };
+    const text = JSON.stringify({ app: "class-placement", format: 2, kind: "rooms", version: 1, state: old });
+    expect(parseImport(text).rooms[0]!.board).toBe("top");
+  });
+
+  test("the all-in-one exports of older versions add their rooms and classes", () => {
     fill();
-    const data: BackupData = {
-      "class-placement-ui": { state: { pannelOpen: false, theme: "light" }, version: 0 },
+    const data = {
+      "class-placement": { state: { ...createExport("rooms").state as object, currentId: "x" }, version: 2 },
+      "class-placement-students": {
+        state: {
+          students: { a: { id: "a", name: "Ann", gender: "other", score: 3, incompatible: [] } },
+          classes: { c: { id: "c", name: "Old class", studentIds: ["a"] } },
+          currentClassId: "c",
+        },
+        version: 2,
+      },
+      "class-placement-ui": { state: { theme: "light" }, version: 0 },
     };
-    restoreBackup(data);
-    expect(useUI.getState()).toMatchObject({ pannelOpen: false, theme: "light" });
-    expect(useI18n.getState().lang).toBe("en");
-    expect(Object.keys(useStudents.getState().students)).toEqual([]);
-    expect(usePlacements.getState().showMarks).toBe(true);
-    expect(localStorage.getItem("class-placement-lang")).toBeNull();
+    applyImport(parseImport(JSON.stringify({ app: "class-placement", format: 1, data })));
+    expect(roomNames()).toEqual(["Room A", "Room A"]);
+    expect(classNames()).toEqual(["Class A", "Old class"]);
+    expect(classes().students[classes().classes[classes().currentClassId]!.studentIds[0]!]!.frontRow).toBe(false);
+    // Settings aren't imported.
+    expect(useUI.getState().theme).toBe("indigo");
   });
 
-  test("old data in an export is migrated on import", () => {
-    const old = {
-      version: 2,
-      state: {
-        students: { a: { id: "a", name: "Ann", gender: "other", score: 3, incompatible: [] } },
-        classes: { c: { id: "c", name: "C", studentIds: ["a"] } },
-        currentClassId: "c",
-      },
-    };
-    restoreBackup(parseBackup(JSON.stringify({ app: "class-placement", data: { "class-placement-students": old } })));
-    expect(useStudents.getState().students.a!.frontRow).toBe(false);
+  test("rejects text that isn't JSON, isn't an export, or holds nothing", () => {
+    expect(errorOf("{nope")).toBe("invalid");
+    expect(errorOf("[]")).toBe("notBackup");
+    expect(errorOf(JSON.stringify({ app: "other", kind: "rooms" }))).toBe("notBackup");
+    expect(errorOf(JSON.stringify({ app: "class-placement" }))).toBe("notBackup");
+    expect(errorOf(JSON.stringify({ app: "class-placement", data: { "class-placement-ui": {} } }))).toBe("empty");
+    expect(errorOf(JSON.stringify({ app: "class-placement", kind: "rooms", version: 2, state: { profiles: {} } }))).toBe("empty");
   });
 });
 

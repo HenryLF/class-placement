@@ -10,6 +10,7 @@ import GenderSelect from "../atoms/GenderSelect";
 import ScoreSelect from "../atoms/ScoreSelect";
 import Modal, { ModalClose } from "../molecules/Modal";
 import s from "./StudentCard.module.css";
+import { byName } from "../../utils/names";
 
 // Modal editing every field of a student (the list edits name, gender and
 // score too). Changes are kept in a draft until Save.
@@ -46,8 +47,12 @@ export default function StudentCard({
     .filter((id) => id !== studentId && !incompatible.includes(id))
     .map((id) => students[id])
     .filter((st) => st !== undefined)
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const listed = incompatible.filter((id) => students[id]);
+    .sort(byName);
+  const listed = incompatible
+    .map((id) => students[id])
+    .filter((st) => st !== undefined)
+    .sort(byName)
+    .map((st) => st.id);
 
   return (
     <Modal
