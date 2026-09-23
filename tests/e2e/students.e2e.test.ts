@@ -416,3 +416,25 @@ test("every dialog is labelled by its own title", async () => {
   );
   expect(label).toBe("Alice");
 });
+
+test("the Classroom and Students pickers name rooms and classes apart", async () => {
+  const picker = () =>
+    page.$eval("aside", (a) => [
+      a.querySelector("[data-testid='profile-heading']")!.textContent,
+      a.querySelector("[data-testid='new-profile']")!.textContent,
+    ]);
+  expect(await picker()).toEqual(["Class", "New class"]);
+  await page.click("[data-testid='tab-classroom']");
+  expect(await picker()).toEqual(["Classroom", "New classroom"]);
+
+  await setLanguage(page, "fr", "tab-classroom");
+  expect(await picker()).toEqual(["Salle de cours", "Nouvelle salle de cours"]);
+  await page.click("[data-testid='new-profile']");
+  const rooms = await stored<{ profiles: Record<string, { name: string }>; currentId: string }>(
+    page,
+    "class-placement",
+  );
+  expect(rooms.profiles[rooms.currentId]!.name).toBe("Nouvelle salle de cours");
+  await page.click("[data-testid='tab-students']");
+  expect(await picker()).toEqual(["Classe", "Nouvelle classe"]);
+});

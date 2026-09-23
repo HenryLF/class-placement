@@ -71,7 +71,7 @@ export function createStudent(): Student {
   };
 }
 
-function createClass(name = getT().profile.defaultName): StudentClass {
+function createClass(name = getT().profile.class.new): StudentClass {
   return { id: crypto.randomUUID(), name, studentIds: [] };
 }
 
@@ -150,7 +150,7 @@ export function repairIncompatibilities(students: Record<string, Student>) {
   return next;
 }
 
-const firstClass = createClass(getT().profile.firstName);
+const firstClass = createClass(getT().profile.class.first);
 
 // Applies `fn` to the loaded class; returns the updated `classes`, or
 // undefined when no class is loaded.

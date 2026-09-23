@@ -10,6 +10,7 @@ interface Profile {
 // class of students).
 export default function ProfilePicker({
   heading,
+  newLabel,
   profiles,
   currentId,
   onLoad,
@@ -20,6 +21,7 @@ export default function ProfilePicker({
   deleteConfirm,
 }: {
   heading: string;
+  newLabel: string;
   profiles: Record<string, Profile>;
   currentId: string;
   onLoad: (id: string) => void;
@@ -38,7 +40,7 @@ export default function ProfilePicker({
 
   return (
     <section className={ui.section}>
-      <h2>{heading}</h2>
+      <h2 data-testid="profile-heading">{heading}</h2>
       <label className={ui.field}>
         {t.profile.load}
         <select value={currentId} onChange={(e) => onLoad(e.currentTarget.value)}>
@@ -58,7 +60,9 @@ export default function ProfilePicker({
         />
       </label>
       <div className={ui.row}>
-        <button onClick={() => onNew()}>{t.profile.newClass}</button>
+        <button data-testid="new-profile" onClick={() => onNew()}>
+          {newLabel}
+        </button>
         {onDuplicate && (
           <button
             data-testid="duplicate-profile"

@@ -173,6 +173,12 @@ describe("importing names", () => {
 });
 
 describe("classes", () => {
+  test("classes are named as classes, not classrooms", () => {
+    expect(current().name).toBe("My class");
+    store().newClass();
+    expect(current().name).toBe("New class");
+  });
+
   test("duplicateClass shares the same students and loads the copy", () => {
     const alice = add("Alice");
     const bob = add("Bob");

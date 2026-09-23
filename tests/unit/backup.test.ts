@@ -105,7 +105,7 @@ describe("restoreBackup", () => {
     fill();
     const data = parseBackup(JSON.stringify(createBackup()));
     resetStores();
-    expect(useClassRoom.getState().profiles[useClassRoom.getState().currentId]!.name).toBe("My class");
+    expect(useClassRoom.getState().profiles[useClassRoom.getState().currentId]!.name).toBe("My classroom");
 
     restoreBackup(data);
     const room = useClassRoom.getState();

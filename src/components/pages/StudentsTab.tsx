@@ -30,7 +30,8 @@ export default function StudentsTab() {
   return (
     <>
       <ProfilePicker
-        heading={t.students.classHeading}
+        heading={t.profile.class.heading}
+        newLabel={t.profile.class.new}
         profiles={classes}
         currentId={currentClassId}
         onLoad={loadClass}

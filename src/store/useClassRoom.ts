@@ -45,7 +45,7 @@ export interface ClassRoomAction {
   clearTables: () => void;
 }
 
-function createProfile(name = getT().profile.defaultName): ClassProfile {
+function createProfile(name = getT().profile.room.new): ClassProfile {
   return { id: crypto.randomUUID(), name, rows: 9, cols: 9, tables: [], board: "top" };
 }
 
@@ -56,7 +56,7 @@ function inBounds(p: ClassProfile, row: number, col: number) {
 const clamp = (n: number, min: number, max: number) =>
   Math.min(max, Math.max(min, Math.floor(n) || min));
 
-const firstProfile = createProfile(getT().profile.firstName);
+const firstProfile = createProfile(getT().profile.room.first);
 
 export const useClassRoom = create<ClassRoomStore & ClassRoomAction>()(
   persist(

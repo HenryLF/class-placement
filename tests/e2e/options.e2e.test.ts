@@ -71,7 +71,9 @@ async function importFile(path: string) {
 test("the language picker lives in the Options tab", async () => {
   expect(await page.$("aside header select")).toBeNull();
   await page.select("[data-testid='language']", "fr");
-  expect(await page.$eval("[data-testid='tab-classroom']", (b) => b.textContent)).toBe("Salle");
+  expect(await page.$eval("[data-testid='tab-classroom']", (b) => b.textContent)).toBe(
+    "Salle de Cours",
+  );
   expect(await page.$eval("[data-testid='tab-options']", (b) => b.getAttribute("aria-label"))).toBe(
     "Options",
   );

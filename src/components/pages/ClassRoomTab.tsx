@@ -29,7 +29,8 @@ function ProfileSection() {
 
   return (
     <ProfilePicker
-      heading={t.tabs.classroom}
+      heading={t.profile.room.heading}
+      newLabel={t.profile.room.new}
       profiles={profiles}
       currentId={currentId}
       onLoad={loadClass}

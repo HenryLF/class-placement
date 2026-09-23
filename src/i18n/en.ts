@@ -21,14 +21,14 @@ const en = {
     options: "Options",
   },
   profile: {
-    heading: "Class",
     load: "Load",
     name: "Name",
-    newClass: "New class",
     duplicate: "Copy",
     deleteConfirm: (name: string) => `Delete "${name}"?`,
-    defaultName: "New class",
-    firstName: "My class",
+    // A room layout (Classroom tab); `new` is both the button and the default name.
+    room: { heading: "Classroom", new: "New classroom", first: "My classroom" },
+    // A class of students (Students tab).
+    class: { heading: "Class", new: "New class", first: "My class" },
   },
   grid: {
     heading: "Grid",
@@ -49,7 +49,6 @@ const en = {
     whiteboard: "Whiteboard",
   },
   students: {
-    classHeading: "Class",
     copyName: (name: string) => `${name} - Copy`,
     deleteClassConfirm: (name: string) =>
       `Delete "${name}"? Students who aren't in another class will be deleted too.`,
@@ -91,9 +90,11 @@ const en = {
     import: "Import",
   },
   deleteStudent: {
-    title: (name: string, className: string) => `Delete ${name} from "${className}"?`,
+    title: (name: string, className: string) =>
+      `Delete ${name} from "${className}"?`,
     alsoIn: (classes: string) => `Also in: ${classes}.`,
-    onlyHere: "They aren't in any other class, so they'll be deleted completely.",
+    onlyHere:
+      "They aren't in any other class, so they'll be deleted completely.",
     fromClass: "This class only",
     fromAll: "All classes",
   },
@@ -118,7 +119,8 @@ const en = {
     themes: { indigo: "Indigo (default)", light: "Light", chalk: "Chalkboard" },
     backupHeading: "Import / export",
     export: "Export as JSON",
-    exportHint: "Downloads every room, class, student, placement and setting in one file.",
+    exportHint:
+      "Downloads every room, class, student, placement and setting in one file.",
     import: "Import from JSON…",
     importHint: "Replaces all current data with the file's.",
     importConfirm: (date: string) =>
@@ -128,13 +130,14 @@ const en = {
     about: [
       "Class Placement runs entirely in your browser. No data is collected or sent anywhere: there is no server, no account and no tracking.",
       "Your rooms, classes and students are saved in this browser, on this device only. Clearing the browser's data for this site deletes them.",
-      "To keep a backup, or to move your data to another device or browser, use \"Export as JSON\" above, then \"Import from JSON\" on the other side.",
+      'To keep a backup, or to move your data to another device or browser, use "Export as JSON" above, then "Import from JSON" on the other side.',
     ],
     errors: {
       invalid: "This file isn't valid JSON.",
       notBackup: "This file isn't a Class Placement export.",
       empty: "This file has no data to import.",
-      broken: (key: string) => `The file's "${key}" data is damaged. Nothing was imported.`,
+      broken: (key: string) =>
+        `The file's "${key}" data is damaged. Nothing was imported.`,
     },
   },
   placement: {
@@ -150,14 +153,19 @@ const en = {
       pairMean: "Pair strong with weak",
     },
     diagonal: "Diagonal neighbors",
-    diagonals: { off: "Ignored", quarter: "¼ weight", half: "½ weight", full: "Full weight" },
+    diagonals: {
+      off: "Ignored",
+      quarter: "¼ weight",
+      half: "½ weight",
+      full: "Full weight",
+    },
     front: "Fill the front first",
     frontRow: "Front-row students near the board",
     // Shown by each constraint's ⓘ button, one string per paragraph.
     help: {
       gender: [
         "Avoids seating two girls, or two boys, next to each other, so genders alternate across the room.",
-        "Students whose gender is \"Other\" can sit next to anyone. Arrows mark same-gender neighbors.",
+        'Students whose gender is "Other" can sit next to anyone. Arrows mark same-gender neighbors.',
       ],
       incompatible: [
         "Keeps apart the students marked as incompatible in a student's card, so they never sit next to each other.",
@@ -174,7 +182,7 @@ const en = {
         "Distance is measured to the middle of the whiteboard, so the front center fills first. Only useful when there are more tables than students.",
       ],
       frontRow: [
-        "Brings the students who need to sit at the front closer to the whiteboard. Tick \"Front row\" in a student's card to mark them.",
+        'Brings the students who need to sit at the front closer to the whiteboard. Tick "Front row" in a student\'s card to mark them.',
         "Arrows mark a front-row student when a table closer to the board is empty, or taken by a student who doesn't need the front.",
       ],
       diagonal: [
@@ -198,13 +206,15 @@ const en = {
     unplaced: (names: string) => `Not enough tables. Not seated: ${names}.`,
     violationsNone: "No constraint broken.",
     violations: {
-      incompatible: (n: number) => `${n} incompatible ${n === 1 ? "pair" : "pairs"}`,
+      incompatible: (n: number) =>
+        `${n} incompatible ${n === 1 ? "pair" : "pairs"}`,
       gender: (n: number) => `${n} same-gender ${n === 1 ? "pair" : "pairs"}`,
       score: (n: number) => `${n} same-level ${n === 1 ? "pair" : "pairs"}`,
       frontRow: (n: number) =>
         `${n} front-row ${n === 1 ? "student" : "students"} not at the front`,
     },
-    arrowsHint: "Arrows on a table point to the neighbor it breaks a constraint with.",
+    arrowsHint:
+      "Arrows on a table point to the neighbor it breaks a constraint with.",
   },
 };
 

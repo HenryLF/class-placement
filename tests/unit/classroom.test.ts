@@ -74,6 +74,12 @@ test("migrating v1 data adds the whiteboard at the top", () => {
 });
 
 describe("layouts", () => {
+  test("layouts are named as classrooms, not classes", () => {
+    expect(store().profiles[store().currentId]!.name).toBe("My classroom");
+    store().newClass();
+    expect(store().profiles[store().currentId]!.name).toBe("New classroom");
+  });
+
   test("deleteClass loads another layout, or a fresh one after the last", () => {
     const first = store().currentId;
     store().newClass("Second");

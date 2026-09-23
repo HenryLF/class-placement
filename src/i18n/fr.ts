@@ -24,14 +24,16 @@ const fr: Translations = {
     options: "Options",
   },
   profile: {
-    heading: "Classe",
     load: "Charger",
     name: "Nom",
-    newClass: "Nouvelle classe",
     duplicate: "Copier",
     deleteConfirm: (name) => `Supprimer « ${name} » ?`,
-    defaultName: "Nouvelle classe",
-    firstName: "Ma classe",
+    room: {
+      heading: "Salle de cours",
+      new: "Nouvelle salle de cours",
+      first: "Ma salle de cours",
+    },
+    class: { heading: "Classe", new: "Nouvelle classe", first: "Ma classe" },
   },
   grid: {
     heading: "Grille",
@@ -52,7 +54,6 @@ const fr: Translations = {
     whiteboard: "Tableau",
   },
   students: {
-    classHeading: "Classe",
     copyName: (name) => `${name} - Copie`,
     deleteClassConfirm: (name) =>
       `Supprimer « ${name} » ? Les élèves qui ne sont dans aucune autre classe seront aussi supprimés.`,
