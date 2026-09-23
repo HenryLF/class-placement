@@ -18,7 +18,7 @@ const fr: Translations = {
     about: (name) => `À propos de « ${name} »`,
   },
   tabs: {
-    classroom: "Salle",
+    classroom: "Salle de Cours",
     students: "Élèves",
     placement: "Placement",
     options: "Options",

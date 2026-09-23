@@ -29,7 +29,7 @@ function ProfileSection() {
 
   return (
     <ProfilePicker
-      heading={t.profile.heading}
+      heading={t.tabs.classroom}
       profiles={profiles}
       currentId={currentId}
       onLoad={loadClass}
