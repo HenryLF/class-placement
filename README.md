@@ -53,7 +53,10 @@ assets are cached for a year, and `index.html` is always revalidated.
   of names, one student per line, into the loaded class. **Import from
   Pronote** reads a Pronote CSV export of the class's students (name from
   "Élèves", gender from "Sexe"), shows a preview, and adds them to the
-  loaded class, skipping students whose name is already there. One student can
+  loaded class, skipping students whose name is already there. A name that
+  belongs to a student saved in another class is listed as a possible
+  duplicate: for each one, choose between using that student (both classes
+  then share the record) and creating a new student for a namesake. One student can
   belong to several classes. Each student shows a short ID (`#3f9a1c2e`) to tell
   apart students with the same name. **Copy** duplicates a class; the copy
   shares the same students. **Add from another class** lists every other
@@ -86,6 +89,7 @@ assets are cached for a year, and `index.html` is always revalidated.
 - **Options** (⚙ tab):
   - **Language**: English (default) or French.
   - **Theme**: Indigo (default), Light or Chalkboard, which change the panel's, the room's and the tables' colors.
+  - **Names on the tables**: font size, in pixels (8 to 40, 12 by default), of the student names shown on the seated tables — useful when projecting the plan in class. It is a browser preference, not part of a room or a class.
   - **Import / export**: two exports, one with every classroom, one with every class and its students. Placements aren't exported, since each depends on both a classroom and a class. Import adds the file's classrooms or classes next to the existing ones and replaces nothing. Files from older versions, including the older all-in-one exports, are migrated.
   - **About**: no data is collected; everything stays in the browser, and JSON export / import is the way to back it up or move it.
 
@@ -128,13 +132,13 @@ src/
       ClassRoomTab.tsx    Room layouts, grid size, table tools
       StudentsTab.tsx     Student classes and their students
       PlacementTab.tsx    Placement options, Place / Clear, results
-      OptionsTab.tsx      Language, theme, JSON import / export, About
+      OptionsTab.tsx      Language, theme, name size, JSON import / export, About
   store/
     useClassRoom.ts       Room layouts and their actions (persisted)
     useStudents.ts        Students and student classes (persisted)
     profiles.ts           Profile helpers shared by both stores
     usePlacements.ts      Placement options and saved seatings (persisted)
-    useUI.ts              UI preferences: panel open, theme (persisted)
+    useUI.ts              UI preferences: panel open, theme, name size (persisted)
     backup.ts             Export / import of rooms, and of classes, as JSON
   i18n/
     en.ts                 English strings (reference shape)
@@ -261,7 +265,9 @@ drop links to deleted students, in case stored data was edited by hand.
   text, `parsePronote(text)` for a Pronote CSV). Duplicate names are kept
   as separate students, since two students can share a name; the Pronote
   dialog skips names already in the class (`sameName`) so a re-import adds
-  nothing.
+  nothing, and asks about names that match a student saved in another
+  class (`matchImport(entries, students, memberIds)`): joining one calls
+  `addToClass` instead of creating a second record.
 
 ### localStorage keys
 
@@ -270,7 +276,7 @@ drop links to deleted students, in case stored data was edited by hand.
 | `class-placement`          | Room layouts and the loaded layout id      |
 | `class-placement-students` | Students, student classes, loaded class id |
 | `class-placement-placements` | Placement options, seatings and switched-off tables per room + class (v2) |
-| `class-placement-ui`       | UI preferences (panel open/closed, theme)  |
+| `class-placement-ui`       | UI preferences (panel open/closed, theme, name size) |
 | `class-placement-lang`     | Selected language                          |
 
 `class-placement` is at version 3, `class-placement-students` at version 3 and `class-placement-placements` at version 2. When you change a stored shape, bump `version` and handle

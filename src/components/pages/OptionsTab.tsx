@@ -8,7 +8,7 @@ import {
   parseImport,
   type ExportKind,
 } from "../../store/backup";
-import { THEMES, useUI, type Theme } from "../../store/useUI";
+import { NAME_SIZE, THEMES, toNameSize, useUI, type Theme } from "../../store/useUI";
 import ui from "../../style/ui.module.css";
 import LanguageSelect from "../atoms/LanguageSelect";
 import s from "./OptionsTab.module.css";
@@ -22,6 +22,7 @@ export default function OptionsTab() {
         <LanguageSelect />
       </section>
       <ThemeSection />
+      <NameSizeSection />
       <BackupSection />
       <section className={ui.section} data-testid="about">
         <h2>{t.options.aboutHeading}</h2>
@@ -55,6 +56,46 @@ function ThemeSection() {
           </option>
         ))}
       </select>
+    </section>
+  );
+}
+
+function NameSizeSection() {
+  const t = useT();
+  const nameSize = useUI((st) => st.nameSize);
+  const setNameSize = useUI((st) => st.setNameSize);
+  // A draft, so a half-typed number ("1" on the way to "14") isn't clamped
+  // back under the cursor. Only a valid one reaches the store.
+  const [draft, setDraft] = useState(String(nameSize));
+
+  return (
+    <section className={ui.section}>
+      <h2>{t.options.nameSizeHeading}</h2>
+      <label className={ui.field}>
+        {t.options.nameSize}
+        <input
+          type="number"
+          className={s.number}
+          data-testid="name-size"
+          min={NAME_SIZE.min}
+          max={NAME_SIZE.max}
+          step={1}
+          value={draft}
+          onInput={(e) => {
+            const value = e.currentTarget.value;
+            setDraft(value);
+            const px = Number(value);
+            if (value !== "" && px >= NAME_SIZE.min && px <= NAME_SIZE.max) setNameSize(px);
+          }}
+          // Anything out of range, or left empty, snaps back on leaving.
+          onBlur={() => {
+            const px = draft === "" ? nameSize : toNameSize(draft);
+            setNameSize(px);
+            setDraft(String(px));
+          }}
+        />
+      </label>
+      <p className={ui.hint}>{t.options.nameSizeHint}</p>
     </section>
   );
 }

@@ -3,3 +3,9 @@
   max-height: 40vh;
   overflow-y: auto;
 }
+
+/* Heading of the duplicates list, above the students to create. */
+.subhead {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}

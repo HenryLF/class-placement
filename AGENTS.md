@@ -68,7 +68,7 @@ src/
   store/useStudents.ts        Students + student classes (persisted, v3) + pure helpers
   store/profiles.ts           removeProfile(), shared by both stores' deleteClass
   store/usePlacements.ts      Placement options, seatings, switched-off tables (persisted, v2); useSeating()
-  store/useUI.ts              Panel open/closed, color theme (persisted); sets <html data-theme>
+  store/useUI.ts              Panel open/closed, color theme, name size (persisted); sets <html data-theme> and --name-size
   store/backup.ts             Export / import of rooms, and of classes + students, as separate JSON files
   utils/dnd.ts                Pointer-events drag and drop
   utils/placement.ts          Seating algorithm (pure): place(), findViolations(), cost model
@@ -96,13 +96,13 @@ src/
       StudentCard.tsx         Modal: edit every field of one student
       StudentPicker.tsx       Modal: add students from other classes
       ImportStudentsDialog.tsx Modal: paste names, one student per line
-      PronoteImportDialog.tsx Modal: pick a Pronote CSV, preview, import (skips names already in the class)
+      PronoteImportDialog.tsx Modal: pick a Pronote CSV, preview, import (skips names already in the class; asks about names saved in another one)
       DeleteStudentDialog.tsx "This class only / All classes" question
     pages/
       ClassRoomTab.tsx        Layout picker, grid size, table tools
       StudentsTab.tsx         Student-class picker, student list, dialogs
       PlacementTab.tsx        Constraint options (each with an ⓘ help modal), Place / Clear, unplaced + violation summary
-      OptionsTab.tsx          ⚙ tab: language, theme, JSON import / export, About
+      OptionsTab.tsx          ⚙ tab: language, theme, name size, JSON import / export, About
 tests/
   setup.ts                    happy-dom preload (unit tests only)
   helpers.ts                  resetStores()
@@ -162,6 +162,12 @@ These are deliberate design decisions. Don't reverse them without asking:
   as numbers. The student list (`StudentTable`) holds its order while the
   pointer is over it or focus is in it, so a row never moves while its name
   is typed or under a click; it re-sorts when the user moves away.
+- **An import may mean an existing student.** `matchImport()` pairs each
+  imported `{ name, gender? }` with the stored students of the same name
+  (`sameName`): those in the loaded class are skipped, the others are
+  possible duplicates. The Pronote dialog asks about each one, and either
+  adds the stored student to the class (`addToClass`) or imports a new
+  record, since two students really can share a name.
 - **Store helpers:** `updateCurrentClass()` applies a change to the loaded
   class; `removeProfile()` ([profiles.ts](src/store/profiles.ts)) is the
   "delete, but always keep one loaded" rule for both stores.
@@ -268,6 +274,8 @@ explained in the README.
   - Don't infer gender in French wording (the app already avoids "il/elle").
 - **Styles:**
   - Colors and radii come from the CSS variables in `global.css`; don't hard-code hex values in modules.
+  - `--name-size` is the font size of the names on the tables, set on
+    `<html>` from `useUI` (Options tab), not a per-theme token.
   - Themes (`indigo` = `:root`, `light`, `chalk`) override those variables under `:root[data-theme=…]`. A new color token needs a value in every theme where the default doesn't read well. Room (`--paper`, `--grid-line`, `--highlight`) and table (`--table`, `--table-border`, `--table-text`) colors are set per theme.
   - Reusable classes go in `ui.module.css`, imported as `ui`; the table/whiteboard look in `furniture.module.css`, imported as `f`; component-specific CSS goes in a sibling module, imported as `s`.
   - The panel can be as narrow as 320px. Check layouts there (there is an e2e test for it). Below 768px it overlays the room (fixed, full width up to 420px) instead of shrinking it.

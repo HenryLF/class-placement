@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import {
   classesByStudent,
   createStudent,
+  matchImport,
   parseNames,
   repairIncompatibilities,
   toScore,
@@ -344,5 +345,63 @@ describe("the loaded class", () => {
     const alice = add("Alice");
     store().saveStudent({ ...alice, name: "Alicia" });
     expect(current().studentIds).toEqual([alice.id]);
+  });
+});
+
+describe("matchImport", () => {
+  /** Alice and Bob in "Other", with the first class loaded again. */
+  function otherClass() {
+    const first = store().currentClassId;
+    store().newClass("Other");
+    const alice = add("Alice Martin");
+    const bob = add("BOB Dupont");
+    store().loadClass(first);
+    return { alice, bob };
+  }
+
+  test("matches a stored student of another class, ignoring case and accents", () => {
+    const { alice } = otherClass();
+    const [match] = matchImport(
+      [{ name: "alice martín" }],
+      store().students,
+      current().studentIds,
+    );
+    expect(match!.inClass).toBe(false);
+    expect(match!.matches.map((st) => st.id)).toEqual([alice.id]);
+  });
+
+  test("a member of the loaded class is inClass, and no longer a duplicate", () => {
+    const { bob } = otherClass();
+    store().addToClass(bob.id);
+    const [match] = matchImport(
+      [{ name: "Bob Dupont" }],
+      store().students,
+      current().studentIds,
+    );
+    expect(match!.inClass).toBe(true);
+    expect(match!.matches).toEqual([]);
+  });
+
+  test("an unknown name matches nothing, and entries keep their order", () => {
+    otherClass();
+    const entries = [{ name: "Zoe" }, { name: "Alice Martin" }];
+    const matched = matchImport(entries, store().students, current().studentIds);
+    expect(matched.map((m) => m.entry)).toEqual(entries);
+    expect(matched.map((m) => m.matches.length)).toEqual([0, 1]);
+  });
+
+  test("lists every namesake, so the user picks which one", () => {
+    const first = store().currentClassId;
+    store().newClass("Other");
+    add("Alice Martin");
+    store().newClass("Third");
+    add("Alice Martin");
+    store().loadClass(first);
+    const [match] = matchImport(
+      [{ name: "Alice Martin" }],
+      store().students,
+      current().studentIds,
+    );
+    expect(match!.matches).toHaveLength(2);
   });
 });

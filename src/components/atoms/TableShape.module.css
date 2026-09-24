@@ -12,7 +12,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.75rem;
+  font-size: var(--name-size);
   font-weight: bold;
   pointer-events: none;
 }

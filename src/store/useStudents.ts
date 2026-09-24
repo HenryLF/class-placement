@@ -2,7 +2,7 @@ import { useMemo } from "preact/hooks";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getT } from "../i18n";
-import { byName } from "../utils/names";
+import { byName, sameName } from "../utils/names";
 import { removeProfile } from "./profiles";
 
 export const GENDERS = ["female", "male", "other"] as const;
@@ -109,6 +109,39 @@ export function parseNames(text: string) {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line !== "");
+}
+
+/** What an imported name matches among the students already stored. */
+export interface ImportMatch {
+  entry: NewStudent;
+  // Already in the loaded class: importing it again would add nothing.
+  inClass: boolean;
+  // Stored students with the same name, outside the loaded class: possible
+  // duplicates, to join instead of creating a second record.
+  matches: Student[];
+}
+
+/**
+ * Each imported entry against the stored students, in order. Names are
+ * compared with `sameName`, so case and accents don't matter; the answer is
+ * a guess for the user to confirm, since two students really can share a
+ * name.
+ */
+export function matchImport(
+  entries: NewStudent[],
+  students: Record<string, Student>,
+  memberIds: string[],
+): ImportMatch[] {
+  const members = new Set(memberIds);
+  const stored = Object.values(students).sort(byName);
+  return entries.map((entry) => {
+    const same = stored.filter((st) => sameName(st.name, entry.name));
+    return {
+      entry,
+      inClass: same.some((st) => members.has(st.id)),
+      matches: same.filter((st) => !members.has(st.id)),
+    };
+  });
 }
 
 /**

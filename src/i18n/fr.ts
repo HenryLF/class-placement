@@ -128,6 +128,20 @@ const fr: Translations = {
       count <= 1
         ? `${count} déjà dans la classe, pas ajouté de nouveau.`
         : `${count} déjà dans la classe, pas ajoutés de nouveau.`,
+    joined: (count) =>
+      count <= 1
+        ? `${count} élève rattaché depuis une autre classe.`
+        : `${count} élèves rattachés depuis une autre classe.`,
+    duplicatesHeading: (count) =>
+      count <= 1 ? `Doublon possible (${count})` : `Doublons possibles (${count})`,
+    duplicatesHint:
+      "Ces noms sont déjà enregistrés dans une autre classe. Utilisez l'élève déjà enregistré, que les deux classes partageront, ou créez-en un nouveau s'il s'agit d'un homonyme.",
+    duplicateColumn: "Déjà enregistré",
+    newHeading: (count) =>
+      count <= 1 ? `Nouvel élève (${count})` : `Nouveaux élèves (${count})`,
+    duplicateChoice: (name) => `Que faire de ${name}`,
+    joinOption: (classes) => `Le même élève, dans ${classes}`,
+    createOption: "Un autre élève : en créer un nouveau",
     errors: {
       notPronote: "Ce fichier n'a pas de colonne « Élèves ». Est-ce bien un export CSV de Pronote ?",
       empty: "Aucun élève trouvé dans ce fichier.",
@@ -160,6 +174,10 @@ const fr: Translations = {
     themeHeading: "Thème",
     theme: "Thème de couleurs",
     themes: { indigo: "Indigo (par défaut)", light: "Clair", chalk: "Tableau noir" },
+    nameSizeHeading: "Noms sur les tables",
+    nameSize: "Taille du texte (px)",
+    nameSizeHint:
+      "Taille des noms des élèves affichés sur les tables une fois la classe placée.",
     backupHeading: "Import / export",
     exportRooms: "Exporter les salles de cours",
     exportClasses: "Exporter les classes",

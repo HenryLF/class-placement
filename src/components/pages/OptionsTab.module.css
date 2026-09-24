@@ -7,3 +7,8 @@
 .ok {
   color: var(--text-muted);
 }
+
+/* A number input is as wide as its digits need, not as the panel. */
+.number {
+  width: 8ch;
+}

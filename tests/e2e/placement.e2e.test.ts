@@ -314,3 +314,30 @@ test("the front-row flag is set in the student card and shown in the list", asyn
   const saved = await stored<{ students: Record<string, Student> }>(page, "class-placement-students");
   expect(saved.students.Ann!.frontRow).toBe(true);
 });
+
+test("the Options tab sets the size of the names on the tables", async () => {
+  await seed([[0, 0]], [student("Alice")]);
+  await page.click("[data-testid='place']");
+  const nameSize = () =>
+    page.$eval("[data-testid='seat-name']", (n) => parseFloat(getComputedStyle(n).fontSize));
+  expect(await nameSize()).toBe(12);
+
+  await page.click("[data-testid='tab-options']");
+  const input = (await page.$("[data-testid='name-size']"))!;
+  await input.click({ count: 3 });
+  await input.type("28");
+  expect(await nameSize()).toBe(28);
+  await screenshot(page, "name-size");
+
+  // Out of range snaps back to the largest allowed size when leaving the field.
+  await input.click({ count: 3 });
+  await input.type("400");
+  await page.keyboard.press("Tab");
+  expect(await input.evaluate((i) => (i as HTMLInputElement).value)).toBe("40");
+
+  // Remembered across a reload.
+  await page.reload();
+  await page.waitForSelector("aside");
+  expect(await nameSize()).toBe(40);
+  expect((await stored<{ nameSize: number }>(page, "class-placement-ui")).nameSize).toBe(40);
+});

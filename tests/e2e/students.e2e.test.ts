@@ -514,3 +514,76 @@ test("Import from Pronote explains a file that isn't a Pronote export", async ()
     await page.$eval("[data-testid='import-submit']", (b) => (b as HTMLButtonElement).disabled),
   ).toBe(true);
 });
+
+/** Adds "MARTIN Léa" to "My class", then loads an empty second class. */
+async function otherClassWithLea() {
+  await addStudent("MARTIN Léa", "female");
+  const lea = await idOf("MARTIN Léa");
+  await page.click("[data-testid='new-profile']");
+  return lea;
+}
+
+test("Import from Pronote offers to join a name already saved in another class", async () => {
+  const lea = await otherClassWithLea();
+  await pickPronote(`${FIXTURES}/pronote.csv`);
+  await page.waitForSelector("[data-testid='pronote-duplicate']");
+
+  expect(
+    await page.$$eval("[data-testid='pronote-duplicate'] td:first-child", (tds) =>
+      tds.map((td) => td.textContent),
+    ),
+  ).toEqual(["MARTIN Léa"]);
+  // Joining the student already saved is the default answer.
+  expect(
+    await page.$$eval("[data-testid='pronote-choice'] option", (os) =>
+      os.map((o) => o.textContent),
+    ),
+  ).toEqual(["Same student, in My class", "A different student: create a new one"]);
+  expect(
+    await page.$eval("[data-testid='pronote-choice']", (sel) => (sel as HTMLSelectElement).value),
+  ).toBe(lea);
+  expect(await page.$eval("[data-testid='import-summary']", (p) => p.textContent)).toBe(
+    'Creating 3 new students in "New class". 1 student joined from another class.',
+  );
+  // The duplicate isn't listed as a student to create.
+  expect(await page.$$eval("[data-testid='pronote-row'] td:first-child", (tds) =>
+    tds.map((td) => td.textContent),
+  )).toEqual(["DUPONT Hugo", "N'DIAYE - ROUX Sam", "LEROY Camille"]);
+  await screenshot(page, "import-pronote-duplicates");
+
+  await page.click("[data-testid='import-submit']");
+  await dialogClosed();
+  const { students, classes } = await db();
+  // One record for Léa, now shared by both classes.
+  expect(Object.values(students).filter((s) => s.name === "MARTIN Léa")).toHaveLength(1);
+  expect(Object.values(classes).map((c) => c.studentIds.includes(lea))).toEqual([true, true]);
+  expect(await listedNames()).toHaveLength(4);
+});
+
+test("Import from Pronote creates a second record for a namesake when asked", async () => {
+  const lea = await otherClassWithLea();
+  await pickPronote(`${FIXTURES}/pronote.csv`);
+  await page.waitForSelector("[data-testid='pronote-duplicate']");
+  await (await page.$("[data-testid='pronote-choice']"))!.select("");
+  expect(await page.$eval("[data-testid='import-summary']", (p) => p.textContent)).toBe(
+    'Creating 4 new students in "New class".',
+  );
+
+  await page.click("[data-testid='import-submit']");
+  await dialogClosed();
+  const { students, classes } = await db();
+  const leas = Object.values(students).filter((s) => s.name === "MARTIN Léa");
+  expect(leas).toHaveLength(2);
+  expect(Object.values(classes).map((c) => c.studentIds.includes(lea))).toEqual([true, false]);
+  expect(await listedNames()).toHaveLength(4);
+});
+
+test("Import from Pronote still skips names already in the loaded class", async () => {
+  await addStudent("MARTIN Léa", "female");
+  await pickPronote(`${FIXTURES}/pronote.csv`);
+  await page.waitForSelector("[data-testid='import-summary']");
+  expect(await page.$("[data-testid='pronote-duplicates']")).toBeNull();
+  expect(await page.$eval("[data-testid='import-summary']", (p) => p.textContent)).toBe(
+    'Creating 3 new students in "My class". 1 already in the class, not added again.',
+  );
+});

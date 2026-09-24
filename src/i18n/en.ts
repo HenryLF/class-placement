@@ -122,6 +122,18 @@ const en = {
     choose: "Choose a CSV file…",
     skipped: (count: number) =>
       `${count} already in the class, not added again.`,
+    joined: (count: number) =>
+      `${count} ${count === 1 ? "student" : "students"} joined from another class.`,
+    duplicatesHeading: (count: number) =>
+      `Possible ${count === 1 ? "duplicate" : "duplicates"} (${count})`,
+    duplicatesHint:
+      "These names are already saved in another class. Use the student you already have, so both classes share one record, or create a new one for a namesake.",
+    duplicateColumn: "Already saved",
+    newHeading: (count: number) =>
+      `New ${count === 1 ? "student" : "students"} (${count})`,
+    duplicateChoice: (name: string) => `What to do with ${name}`,
+    joinOption: (classes: string) => `Same student, in ${classes}`,
+    createOption: "A different student: create a new one",
     errors: {
       notPronote: 'This file has no "Élèves" column. Is it a Pronote CSV export?',
       empty: "No students found in this file.",
@@ -156,6 +168,10 @@ const en = {
     themeHeading: "Theme",
     theme: "Color theme",
     themes: { indigo: "Indigo (default)", light: "Light", chalk: "Chalkboard" },
+    nameSizeHeading: "Names on the tables",
+    nameSize: "Font size (px)",
+    nameSizeHint:
+      "Size of the student names shown on the tables once the class is placed.",
     backupHeading: "Import / export",
     exportRooms: "Export classrooms",
     exportClasses: "Export classes",
