@@ -341,3 +341,35 @@ test("the Options tab sets the size of the names on the tables", async () => {
   expect(await nameSize()).toBe(40);
   expect((await stored<{ nameSize: number }>(page, "class-placement-ui")).nameSize).toBe(40);
 });
+
+test("a long name wraps onto new lines inside its table", async () => {
+  const long = "KANDOLO KALAMBA Marie-Élisabeth Déborah";
+  const word = "Wolfeschlegelsteinhausenbergerdorff";
+  await seed([[0, 0], [0, 1], [0, 2]], [student(long), student(word), student("Bo")]);
+  await page.click("[data-testid='place']");
+
+  const boxes = await page.$$eval("[data-testid='seat-name']", (spans) =>
+    spans.map((s) => {
+      const name = s.getBoundingClientRect();
+      const table = s.parentElement!.getBoundingClientRect();
+      const line = parseFloat(getComputedStyle(s).lineHeight);
+      return {
+        text: s.textContent,
+        lines: Math.round(name.height / line),
+        inside:
+          name.left >= table.left && name.right <= table.right &&
+          name.top >= table.top && name.bottom <= table.bottom,
+        clipped: s.scrollWidth > s.clientWidth,
+      };
+    }),
+  );
+  const of = (text: string) => boxes.find((b) => b.text === text)!;
+  expect(of(long).lines).toBeGreaterThan(1);
+  expect(of(word).lines).toBeGreaterThan(1);
+  expect(of("Bo").lines).toBe(1);
+  for (const b of boxes) {
+    expect(b.inside).toBe(true);
+    expect(b.clipped).toBe(false);
+  }
+  await screenshot(page, "long-names");
+});

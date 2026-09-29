@@ -7,11 +7,18 @@
   padding: 0 2px;
 }
 
+/* Long names wrap between words (a word wider than the table breaks
+   too), up to 3 lines, then end with an ellipsis. */
 .name {
   min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  text-align: center;
+  line-height: 1.15;
   font-size: var(--name-size);
   font-weight: bold;
   pointer-events: none;
