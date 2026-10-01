@@ -65,7 +65,11 @@ const fr: Translations = {
     heading: "Grille",
     rows: "Rangées",
     columns: "Colonnes",
-    shrinkHint: "La grille ne peut pas être réduite au-delà d'une table placée.",
+    shrinkHint: "Réduire la grille retire les tables qui se retrouvent en dehors.",
+    shrinkConfirm: (count) =>
+      count === 1
+        ? "1 table est en dehors de la grille réduite et sera retirée. Continuer ?"
+        : `${count} tables sont en dehors de la grille réduite et seront retirées. Continuer ?`,
   },
   tables: {
     heading: (count) => `Tables (${count})`,

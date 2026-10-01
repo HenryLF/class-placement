@@ -125,7 +125,10 @@ ClassProfile { id, name, rows, cols, tables: { id, row, col }[], board: { col, s
 
 - A table fills exactly one cell. At most one table per cell.
 - Moving a table onto another swaps them.
-- `setSize` never shrinks the grid past a placed table and clamps to 1–30.
+- `setSize` clamps to 1–30 (`toSize`) and removes the tables left outside
+  the grid (`tablesOutside`). The grid inputs keep a draft: a size that
+  would remove tables waits for Enter or blur, then asks with `confirm()`,
+  so typing "12" doesn't delete everything past row 1 on the way.
 - The whiteboard is always above the grid. `board` is its left edge and
   width in columns, in half-column steps (`fitBoard` snaps and keeps it
   inside the grid; `dragBoard` computes a move or edge resize). Its drag is

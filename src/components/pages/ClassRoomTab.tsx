@@ -1,7 +1,10 @@
+import { useEffect, useState } from "preact/hooks";
 import { useT } from "../../i18n";
 import {
   MAX_SIZE,
   MIN_SIZE,
+  tablesOutside,
+  toSize,
   useClassRoom,
   useCurrentClass,
 } from "../../store/useClassRoom";
@@ -44,36 +47,86 @@ function ProfileSection() {
 
 function GridSection() {
   const t = useT();
-  const { rows, cols } = useCurrentClass();
+  const { rows, cols, tables } = useCurrentClass();
   const setSize = useClassRoom((st) => st.setSize);
+
+  // A size that would remove tables waits until editing ends, and asks.
+  const resize = (newRows: number, newCols: number, commit: boolean) => {
+    const removed = tablesOutside(tables, toSize(newRows), toSize(newCols)).length;
+    if (removed === 0) setSize(newRows, newCols);
+    else if (commit && confirm(t.grid.shrinkConfirm(removed))) setSize(newRows, newCols);
+    else return false;
+    return true;
+  };
 
   return (
     <section className={ui.section}>
       <h2>{t.grid.heading}</h2>
       <div className={ui.row}>
-        <label className={ui.field}>
-          {t.grid.rows}
-          <input
-            type="number"
-            min={MIN_SIZE}
-            max={MAX_SIZE}
-            value={rows}
-            onChange={(e) => setSize(e.currentTarget.valueAsNumber, cols)}
-          />
-        </label>
-        <label className={ui.field}>
-          {t.grid.columns}
-          <input
-            type="number"
-            min={MIN_SIZE}
-            max={MAX_SIZE}
-            value={cols}
-            onChange={(e) => setSize(rows, e.currentTarget.valueAsNumber)}
-          />
-        </label>
+        <SizeInput
+          label={t.grid.rows}
+          testId="grid-rows"
+          value={rows}
+          onResize={(n, commit) => resize(n, cols, commit)}
+        />
+        <SizeInput
+          label={t.grid.columns}
+          testId="grid-cols"
+          value={cols}
+          onResize={(n, commit) => resize(rows, n, commit)}
+        />
       </div>
       <p className={ui.hint}>{t.grid.shrinkHint}</p>
     </section>
+  );
+}
+
+/**
+ * A grid size, with a draft: typing "12" over "9" goes through "1", which
+ * must not remove the tables past the first row on the way. `onResize`
+ * returns whether the size was applied; `commit` is true when editing ends.
+ */
+function SizeInput({
+  label,
+  testId,
+  value,
+  onResize,
+}: {
+  label: string;
+  testId: string;
+  value: number;
+  onResize: (n: number, commit: boolean) => boolean;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  // Another room loaded, or the size applied.
+  useEffect(() => setDraft(String(value)), [value]);
+
+  const commit = () => {
+    const n = draft === "" ? value : toSize(Number(draft));
+    if (n === value || !onResize(n, true)) setDraft(String(value));
+  };
+
+  return (
+    <label className={ui.field}>
+      {label}
+      <input
+        type="number"
+        data-testid={testId}
+        min={MIN_SIZE}
+        max={MAX_SIZE}
+        step={1}
+        value={draft}
+        onInput={(e) => {
+          const text = e.currentTarget.value;
+          setDraft(text);
+          const n = Number(text);
+          if (text !== "" && Number.isInteger(n) && n >= MIN_SIZE && n <= MAX_SIZE && n !== value)
+            onResize(n, false);
+        }}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === "Enter" && commit()}
+      />
+    </label>
   );
 }
 

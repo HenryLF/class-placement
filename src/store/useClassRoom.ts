@@ -93,8 +93,13 @@ function inBounds(p: ClassProfile, row: number, col: number) {
   return row >= 0 && col >= 0 && row < p.rows && col < p.cols;
 }
 
-const clamp = (n: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, Math.floor(n) || min));
+/** `n` as a grid size: a whole number from MIN_SIZE to MAX_SIZE. */
+export const toSize = (n: number) =>
+  Math.min(MAX_SIZE, Math.max(MIN_SIZE, Math.floor(n) || MIN_SIZE));
+
+/** Tables that a `rows` × `cols` grid would leave out. */
+export const tablesOutside = (tables: Table[], rows: number, cols: number) =>
+  tables.filter((t) => t.row >= rows || t.col >= cols);
 
 const firstProfile = createProfile(getT().profile.room.first);
 
@@ -139,14 +144,15 @@ export const useClassRoom = create<ClassRoomStore & ClassRoomAction>()(
 
         setSize: (rows, cols) =>
           updateCurrent((p) => {
-            // Never shrink the grid below a placed table.
-            const minRows = Math.max(MIN_SIZE, ...p.tables.map((t) => t.row + 1));
-            const minCols = Math.max(MIN_SIZE, ...p.tables.map((t) => t.col + 1));
-            const newCols = clamp(cols, minCols, MAX_SIZE);
+            const newRows = toSize(rows);
+            const newCols = toSize(cols);
+            // Tables left outside a smaller grid are removed.
+            const outside = new Set(tablesOutside(p.tables, newRows, newCols));
             return {
               ...p,
-              rows: clamp(rows, minRows, MAX_SIZE),
+              rows: newRows,
               cols: newCols,
+              tables: p.tables.filter((t) => !outside.has(t)),
               board: fitBoard(p.board, newCols),
             };
           }),

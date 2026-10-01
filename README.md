@@ -31,8 +31,8 @@ assets are cached for a year, and `index.html` is always revalidated.
 
 ## Features
 
-- **Grid**: a rows × columns room (1–30 each). The grid can't shrink past a
-  placed table.
+- **Grid**: a rows × columns room (1–30 each). Shrinking it removes the
+  tables left outside, after a confirmation.
 - **Tables**: click an empty cell to add a table. Drag a table to move it;
   dropping on another table swaps them. While a table is dragged, a bin
   appears at the left end of the whiteboard row: drop it there to remove it.

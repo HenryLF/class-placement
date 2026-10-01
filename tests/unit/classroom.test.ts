@@ -4,6 +4,8 @@ import {
   dragBoard,
   fitBoard,
   MAX_SIZE,
+  tablesOutside,
+  toSize,
   useClassRoom,
   type ClassProfile,
 } from "../../src/store/useClassRoom";
@@ -47,11 +49,37 @@ describe("tables", () => {
 });
 
 describe("setSize", () => {
-  test("won't shrink past a placed table", () => {
+  test("a smaller grid removes the tables left outside it", () => {
+    store().addTable(0, 0);
+    store().addTable(1, 4);
+    store().addTable(4, 1);
     store().addTable(4, 6);
-    store().setSize(2, 2);
-    expect(current().rows).toBe(5);
-    expect(current().cols).toBe(7);
+    store().setSize(2, 5);
+    expect(current().rows).toBe(2);
+    expect(current().cols).toBe(5);
+    expect(positions()).toEqual(["0:0", "1:4"]);
+    // Growing again doesn't bring them back.
+    store().setSize(9, 9);
+    expect(positions()).toEqual(["0:0", "1:4"]);
+  });
+
+  test("tablesOutside lists the tables a size would remove", () => {
+    store().addTable(0, 0);
+    store().addTable(2, 0);
+    store().addTable(0, 3);
+    const { tables } = current();
+    const at = (rows: number, cols: number) =>
+      tablesOutside(tables, rows, cols).map((t) => `${t.row}:${t.col}`);
+    expect(at(3, 4)).toEqual([]);
+    expect(at(2, 4)).toEqual(["2:0"]);
+    expect(at(2, 3)).toEqual(["2:0", "0:3"]);
+  });
+
+  test("toSize makes a whole number from 1 to MAX_SIZE", () => {
+    expect(toSize(4.7)).toBe(4);
+    expect(toSize(0)).toBe(1);
+    expect(toSize(NaN)).toBe(1);
+    expect(toSize(999)).toBe(MAX_SIZE);
   });
 
   test("stays within 1 and MAX_SIZE", () => {

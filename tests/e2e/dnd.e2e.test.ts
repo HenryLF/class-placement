@@ -221,3 +221,60 @@ test("on a phone, the panel opens on top of the room instead of shrinking it", a
   expect(await width()).toBe(open);
   await screenshot(page, "phone-room");
 });
+
+test("shrinking the grid removes the tables outside it, after asking", async () => {
+  const size = async () => {
+    const s = await stored<{ profiles: Record<string, ClassProfile>; currentId: string }>(
+      page,
+      "class-placement",
+    );
+    const p = s.profiles[s.currentId]!;
+    return `${p.rows}x${p.cols}`;
+  };
+  const type = async (testId: string, text: string) => {
+    await page.click(`[data-testid='${testId}']`, { count: 3 });
+    await page.keyboard.type(text);
+  };
+  // Replaces openApp's handler: record each question, answer with `answer`.
+  const asked: string[] = [];
+  let answer = true;
+  page.removeAllListeners("dialog");
+  page.on("dialog", (d) => {
+    asked.push(d.message());
+    void (answer ? d.accept() : d.dismiss());
+  });
+
+  for (const [r, c] of [[0, 0], [5, 5], [8, 2]] as const) await page.click(cell(r, c));
+
+  // "12" goes through "1": that must not remove anything on the way.
+  await type("grid-rows", "12");
+  expect(await size()).toBe("12x9");
+  expect((await room()).tables).toEqual(["0:0", "5:5", "8:2"]);
+
+  // Growing and shrinking into empty space apply at once, without a question.
+  await type("grid-cols", "7");
+  expect(await size()).toBe("12x7");
+  expect(asked).toEqual([]);
+
+  // Removing tables waits for Enter (or leaving the field), then asks.
+  await type("grid-rows", "3");
+  expect(await size()).toBe("12x7");
+  await page.keyboard.press("Enter");
+  expect(asked).toEqual([
+    "2 tables are outside the smaller grid and will be removed. Continue?",
+  ]);
+  expect(await size()).toBe("3x7");
+  expect((await room()).tables).toEqual(["0:0"]);
+  expect(await page.$$eval("[data-testid='table']", (els) => els.length)).toBe(1);
+
+  // Declined: nothing changes, and the field shows the size again.
+  answer = false;
+  await page.click(cell(2, 6));
+  await type("grid-cols", "3");
+  await page.click("h1");
+  expect(asked).toHaveLength(2);
+  expect(await size()).toBe("3x7");
+  expect((await room()).tables).toEqual(["0:0", "2:6"]);
+  expect(await page.$eval("[data-testid='grid-cols']", (el) => (el as HTMLInputElement).value)).toBe("7");
+  await screenshot(page, "grid-shrunk");
+});

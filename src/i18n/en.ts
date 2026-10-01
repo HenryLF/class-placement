@@ -60,7 +60,11 @@ const en = {
     heading: "Grid",
     rows: "Rows",
     columns: "Columns",
-    shrinkHint: "The grid can't shrink past a placed table.",
+    shrinkHint: "Shrinking the grid removes the tables left outside it.",
+    shrinkConfirm: (count: number) =>
+      count === 1
+        ? "1 table is outside the smaller grid and will be removed. Continue?"
+        : `${count} tables are outside the smaller grid and will be removed. Continue?`,
   },
   tables: {
     heading: (count: number) => `Tables (${count})`,
